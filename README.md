@@ -12,7 +12,6 @@ Dependencies
 -----------
 Boost, Crypto++, OpenSSL, Pugi XML.
 
-Contributors
+Contributors in order of appearance
 -----------
-Stefan Karlsson
-Stefan Marton.
+Stefan Karlsson, Stefan Marton.
