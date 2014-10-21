@@ -5,7 +5,7 @@ An almost working XMPP client library written in C++.
 
 License
 -----------
-[Boost Software License](http://www.boost.org/LICENSE_1_0.txt)
+[Boost Software License](http://www.boost.org/LICENSE_1_0.txt).
 Please note dependencies may use a different license.
 
 Dependencies
