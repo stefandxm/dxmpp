@@ -30,7 +30,7 @@ namespace DXMPP
     typedef boost::shared_ptr<pugi::xml_node> SharedXMLNode;
 
     class Connection : public boost::enable_shared_from_this<Connection>
-	{
+    {
         enum class ConnectionState
         {
             NotConnected = 0,
@@ -55,94 +55,94 @@ namespace DXMPP
         };
 
 
-		StanzaCallback *StanzaHandler;
-		ConnectionCallback *ConnectionHandler;
-		ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
+        StanzaCallback *StanzaHandler;
+        ConnectionCallback *ConnectionHandler;
+        ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
-	public:
-		enum class DebugOutputTreshold
-		{
-			None = 0,
-			Error = 1,
-			Debug = 2,
-		};
+    public:
+        enum class DebugOutputTreshold
+        {
+            None = 0,
+            Error = 1,
+            Debug = 2,
+        };
 
-	private:
+    private:
         
         bool FeaturesSASL_DigestMD5;
         bool FeaturesSASL_CramMD5;
         bool FeaturesSASL_ScramSHA1;
         bool FeaturesSASL_Plain;        
-		DebugOutputTreshold DebugTreshold;
-		
-		bool SSLConnection;
-		bool FeaturesStartTLS;
-		
-		
-		ConnectionState CurrentConnectionState;
-		AuthenticationState CurrentAuthenticationState;
-				
-		std::string Hostname;
-		std::string Password;
-		int Portnumber;
-		
-		JID MyJID;
-		
+        DebugOutputTreshold DebugTreshold;
+        
+        bool SSLConnection;
+        bool FeaturesStartTLS;
+        
+        
+        ConnectionState CurrentConnectionState;
+        AuthenticationState CurrentAuthenticationState;
+                
+        std::string Hostname;
+        std::string Password;
+        int Portnumber;
+        
+        JID MyJID;
+        
         boost::thread *IOThread;
-		boost::asio::io_service io_service;
-		boost::asio::ip::tcp::socket tcp_socket;
-		boost::asio::ssl::context ssl_context;
-		boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> ssl_socket;
+        boost::asio::io_service io_service;
+        boost::asio::ip::tcp::socket tcp_socket;
+        boost::asio::ssl::context ssl_context;
+        boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> ssl_socket;
 
-		SASL::SASLMechanism *Authentication;
+        SASL::SASLMechanism *Authentication;
 
         void HandleWrite(std::shared_ptr<std::string> Data, boost::system::error_code error);
 
-		void OpenXMPPStream();
-		bool verify_certificate(bool preverified,
-								boost::asio::ssl::verify_context& ctx);		
-		bool ConnectTLSSocket();
-		bool ConnectSocket();
-		static const int ReadDataBufferSize = 1024;
-		char ReadDataBuffer[ReadDataBufferSize];		
-		std::stringstream ReadDataStream;
-		
-		void CheckStreamForFeatures();
-		void WriteXMLToSocket(pugi::xml_document *Doc);
-		void WriteTextToSocket(const std::string &Data);	
-		void InitTLS();	
+        void OpenXMPPStream();
+        bool verify_certificate(bool preverified,
+                                boost::asio::ssl::verify_context& ctx);     
+        bool ConnectTLSSocket();
+        bool ConnectSocket();
+        static const int ReadDataBufferSize = 1024;
+        char ReadDataBuffer[ReadDataBufferSize];        
+        std::stringstream ReadDataStream;
+        
+        void CheckStreamForFeatures();
+        void WriteXMLToSocket(pugi::xml_document *Doc);
+        void WriteTextToSocket(const std::string &Data);    
+        void InitTLS(); 
 
-		pugi::xml_document *IncomingDocument;
+        pugi::xml_document *IncomingDocument;
 
 
-		bool LoadXML();	
-		pugi::xml_node SelectSingleXMLNode(const char* xpath);
-		pugi::xpath_node_set SelectXMLNodes(const char* xpath);
+        bool LoadXML(); 
+        pugi::xml_node SelectSingleXMLNode(const char* xpath);
+        pugi::xpath_node_set SelectXMLNodes(const char* xpath);
 
-		void ClearReadDataStream();
+        void ClearReadDataStream();
 
-		// who vomited?
-		void CheckForTLSProceed();
-		void CheckForWaitingForSession();
-		void CheckForBindSuccess();
-		void CheckForSASLData();
-		void CheckStreamForAuthenticationData();		
-		void CheckStreamForStanza();
+        // who vomited?
+        void CheckForTLSProceed();
+        void CheckForWaitingForSession();
+        void CheckForBindSuccess();
+        void CheckForSASLData();
+        void CheckStreamForAuthenticationData();        
+        void CheckStreamForStanza();
 
-		// this is ok (invalid xml)
-		void CheckForStreamEnd();
+        // this is ok (invalid xml)
+        void CheckForStreamEnd();
 
-		// this is ok
-		void CheckStreamForValidXML();
+        // this is ok
+        void CheckStreamForValidXML();
 
-		void BindResource();
-		void StartBind();
-				
-		void HandleRead(boost::system::error_code error, std::size_t bytes_transferred);
-		void AsyncRead();
-		void Connect();
+        void BindResource();
+        void StartBind();
+                
+        void HandleRead(boost::system::error_code error, std::size_t bytes_transferred);
+        void AsyncRead();
+        void Connect();
 
-		void BrodcastConnectionState(ConnectionCallback::ConnectionState NewState);
+        void BrodcastConnectionState(ConnectionCallback::ConnectionState NewState);
 
         Connection(const std::string &Hostname,
             int Portnumber,
@@ -180,9 +180,9 @@ namespace DXMPP
 
 
     public:
-		SharedStanza CreateStanza(const JID &Target);
-		void SendStanza(SharedStanza Stanza);
-		
+        SharedStanza CreateStanza(const JID &Target);
+        void SendStanza(SharedStanza Stanza);
+        
         static SharedConnection Create(const std::string &Hostname,
                                        int Portnumber,
                                        const JID &RequestedJID,
@@ -201,8 +201,8 @@ namespace DXMPP
                                        DebugTreshold)
                     );
         }
-		
+        
         ~Connection();
-	};
+    };
 }
 #endif

@@ -10,19 +10,19 @@
 
 namespace  DXMPP
 {
-	class Connection;
+    class Connection;
     typedef boost::shared_ptr<Connection> SharedConnection;
 
-	class StanzaCallback
-	{
-	public:
-		virtual void StanzaReceived(SharedStanza Stanza,
-			SharedConnection Sender) = 0;
+    class StanzaCallback
+    {
+    public:
+        virtual void StanzaReceived(SharedStanza Stanza,
+            SharedConnection Sender) = 0;
 
-		virtual ~StanzaCallback()
-		{
-		}
-	};
+        virtual ~StanzaCallback()
+        {
+        }
+    };
 }
 
 #endif // DXMPP_StanzaCallBack_hpp

@@ -44,32 +44,32 @@
 
 namespace DXMPP
 {
-	namespace SASL
-	{
-		using namespace std;
-		using namespace boost::asio::ip;
-		using namespace boost::asio;
-		using namespace pugi;	
-		using namespace boost::archive::iterators;
+    namespace SASL
+    {
+        using namespace std;
+        using namespace boost::asio::ip;
+        using namespace boost::asio;
+        using namespace pugi;   
+        using namespace boost::archive::iterators;
 
-		typedef transform_width< binary_from_base64<remove_whitespace<string::const_iterator> >, 8, 6 > Base64Decode;
-		typedef insert_linebreaks<base64_from_binary<transform_width<string::const_iterator,6,8> >, 72 > Base64Encode;
+        typedef transform_width< binary_from_base64<remove_whitespace<string::const_iterator> >, 8, 6 > Base64Decode;
+        typedef insert_linebreaks<base64_from_binary<transform_width<string::const_iterator,6,8> >, 72 > Base64Encode;
 
-		string SASLMechanism::DecodeBase64(string Input)
-		{
-			unsigned int paddChars = count(Input.begin(), Input.end(), '=');
+        string SASLMechanism::DecodeBase64(string Input)
+        {
+            unsigned int paddChars = count(Input.begin(), Input.end(), '=');
             std::replace(Input.begin(),Input.end(),'=','A');
             string result(Base64Decode(Input.begin()), Base64Decode(Input.end()));
             result.erase(result.end()-paddChars,result.end());
-			return result;
-		}
-		
-		string SASLMechanism::EncodeBase64(string Input)
-		{
-			unsigned int writePaddChars = (3-Input.length()%3)%3;
-			string base64(Base64Encode(Input.begin()),Base64Encode(Input.end()));
-			base64.append(writePaddChars,'=');
-			return base64;
-		}
-	}
+            return result;
+        }
+        
+        string SASLMechanism::EncodeBase64(string Input)
+        {
+            unsigned int writePaddChars = (3-Input.length()%3)%3;
+            string base64(Base64Encode(Input.begin()),Base64Encode(Input.end()));
+            base64.append(writePaddChars,'=');
+            return base64;
+        }
+    }
 }

@@ -10,30 +10,30 @@
 
 namespace DXMPP
 {
-	class Connection;
+    class Connection;
     typedef boost::shared_ptr<Connection> SharedConnection;
-	
-	class ConnectionCallback
-	{
-	public:
-		enum class ConnectionState
-		{
-			NotConnected = 0,
-			Connecting,
-			Connected,
-			
-			ErrorConnecting,
-			ErrorAuthenticating,
-			ErrorUnknown
-		};
+    
+    class ConnectionCallback
+    {
+    public:
+        enum class ConnectionState
+        {
+            NotConnected = 0,
+            Connecting,
+            Connected,
+            
+            ErrorConnecting,
+            ErrorAuthenticating,
+            ErrorUnknown
+        };
 
-		virtual void ConnectionStateChanged(ConnectionState NewState,
-			SharedConnection Sender) = 0;
+        virtual void ConnectionStateChanged(ConnectionState NewState,
+            SharedConnection Sender) = 0;
 
-		virtual ~ConnectionCallback()
-		{
-		}
-	};
+        virtual ~ConnectionCallback()
+        {
+        }
+    };
 }
 
 #endif // DXMPP_ConnectionCallback_hpp

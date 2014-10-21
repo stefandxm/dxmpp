@@ -24,9 +24,9 @@ namespace DXMPP
                 
                 SASL_Mechanism_PLAIN(const RawWriter &Writer,
                     const JID &MyJID, 
-                    const std::string &Password)		
+                    const std::string &Password)        
                     :SASLMechanism(Writer, MyJID, Password)
-                {	
+                {   
                 }            
                 
                 void Challenge(const pugi::xpath_node &challenge);

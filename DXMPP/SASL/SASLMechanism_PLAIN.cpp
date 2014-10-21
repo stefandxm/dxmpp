@@ -47,8 +47,8 @@ using namespace std;
 
 namespace DXMPP
 {
-	namespace SASL
-	{
+    namespace SASL
+    {
         namespace Weak
         {
             void SASL_Mechanism_PLAIN::Begin()

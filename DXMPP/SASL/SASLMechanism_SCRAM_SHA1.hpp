@@ -26,11 +26,11 @@ namespace DXMPP
             void Begin();
             
             SASL_Mechanism_SCRAM_SHA1(const RawWriter &Writer,
-				const JID &MyJID, 
-				const std::string &Password)		
-				:SASLMechanism(Writer, MyJID, Password)
-			{	
-			}            
+                const JID &MyJID, 
+                const std::string &Password)        
+                :SASLMechanism(Writer, MyJID, Password)
+            {   
+            }            
             
             void Challenge(const pugi::xpath_node &challenge);
         };

@@ -81,7 +81,7 @@ namespace DXMPP
     
                 // Calculatey Y
                 hash.CalculateDigest( digest, reinterpret_cast<const unsigned char *>( X.c_str() ), X.length() );
-                // X is now in digest			
+                // X is now in digest           
     
                 stringstream TStream;
                 TStream << ":" << nonce << ":" << cnonce;

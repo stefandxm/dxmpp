@@ -26,12 +26,12 @@ public:
     {
     }
 
-	void StanzaReceived(SharedStanza Stanza,
-			SharedConnection Sender)
-	{
-		xml_node Body = Stanza->Message.select_single_node("//body").node();
-		if(!Body)
-			return;
+    void StanzaReceived(SharedStanza Stanza,
+            SharedConnection Sender)
+    {
+        xml_node Body = Stanza->Message.select_single_node("//body").node();
+        if(!Body)
+            return;
 
         if( string(Body.text().as_string()) == "quit")
             Quit = true;
@@ -39,10 +39,10 @@ public:
         cout << "Echoing message '" << Body.text().as_string() << "' from " << Stanza->From.GetFullJID() << std::endl;
 
 
-		SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
-		ResponseStanza->Message.append_copy(Body);
-		Sender->SendStanza(ResponseStanza);
-	}
+        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
+        ResponseStanza->Message.append_copy(Body);
+        Sender->SendStanza(ResponseStanza);
+    }
 
     void ConnectionStateChanged(ConnectionState NewState,
         SharedConnection /*Sender*/)
@@ -81,7 +81,7 @@ int main(int, const char **)
 
     std::cout << "Entering fg loop." <<std::endl;
     while(!Handler.Quit)
-	{
-		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-	}	
+    {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+    }   
 }

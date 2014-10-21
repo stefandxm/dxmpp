@@ -26,38 +26,38 @@
 
 namespace DXMPP
 {
-	namespace SASL
-	{
+    namespace SASL
+    {
 
-		namespace qi = boost::spirit::qi;
-		namespace ascii = boost::spirit::ascii;
+        namespace qi = boost::spirit::qi;
+        namespace ascii = boost::spirit::ascii;
 
-		template <typename Iterator>
-			struct kvpair_parser : qi::grammar<Iterator, std::map<std::string, std::string>(), ascii::space_type>
-		{
-			kvpair_parser() : kvpair_parser::base_type(start)
-			{
-				using qi::int_;
-				using qi::lit;
-				using qi::lexeme;
-				using ascii::char_;
+        template <typename Iterator>
+            struct kvpair_parser : qi::grammar<Iterator, std::map<std::string, std::string>(), ascii::space_type>
+        {
+            kvpair_parser() : kvpair_parser::base_type(start)
+            {
+                using qi::int_;
+                using qi::lit;
+                using qi::lexeme;
+                using ascii::char_;
 
-				key_string %= lexeme[ qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9") ];
-				value_string %= lexeme[ +qi::char_("/+=a-zA-Z_0-9\x2d") ];
-				quoted_string %= lexeme[ '"' >> +(char_ - '"') >> '"' ];
+                key_string %= lexeme[ qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9") ];
+                value_string %= lexeme[ +qi::char_("/+=a-zA-Z_0-9\x2d") ];
+                quoted_string %= lexeme[ '"' >> +(char_ - '"') >> '"' ];
 
-				pair %= key_string >> qi::lit('=') >> ( value_string | quoted_string );
+                pair %= key_string >> qi::lit('=') >> ( value_string | quoted_string );
 
-				start %= pair >> *(qi::lit(',') >> pair);
-			}
+                start %= pair >> *(qi::lit(',') >> pair);
+            }
 
-			qi::rule<Iterator, std::pair<std::string,std::string>(), ascii::space_type> pair;
-			qi::rule<Iterator, std::string(), ascii::space_type> key_string, value_string, quoted_string;
-			qi::rule<Iterator, std::map<std::string, std::string>(), ascii::space_type> start;
-		};
+            qi::rule<Iterator, std::pair<std::string,std::string>(), ascii::space_type> pair;
+            qi::rule<Iterator, std::string(), ascii::space_type> key_string, value_string, quoted_string;
+            qi::rule<Iterator, std::map<std::string, std::string>(), ascii::space_type> start;
+        };
 
-		extern bool ParseSASLChallenge(const std::string kv_string, std::map<std::string,std::string> & results);
-	}
+        extern bool ParseSASLChallenge(const std::string kv_string, std::map<std::string,std::string> & results);
+    }
 }
 
 #endif
