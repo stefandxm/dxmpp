@@ -587,12 +587,43 @@ else std::cout
         }
     }
 
+    Connection::Connection(const std::string &Hostname,
+        int Portnumber,
+        const JID &RequestedJID,
+        const std::string &Password,
+        StanzaCallback *StanzaHandler,
+        ConnectionCallback *ConnectionHandler,
+        DebugOutputTreshold DebugTreshold)
+    :
+        StanzaHandler(StanzaHandler),
+        ConnectionHandler(ConnectionHandler),
+        DebugTreshold(DebugTreshold),
+        CurrentAuthenticationState(AuthenticationState::None),
+        MyJID(RequestedJID),
+        io_service(),
+        tcp_socket(io_service),
+        ssl_context(boost::asio::ssl::context::sslv23),
+        ssl_socket(tcp_socket, ssl_context),
+        IncomingDocument(nullptr)
+    {
+        FeaturesStartTLS = false;
+
+        SSLConnection = false;
+
+        ssl_socket.set_verify_mode(boost::asio::ssl::verify_peer);
+        ssl_socket.set_verify_callback(boost::bind(&Connection::verify_certificate, this, _1, _2));
+
+        this->Hostname = Hostname;
+        this->Portnumber = Portnumber;
+        this->Password = Password;
+        Connect();
+    }
+
     void Connection::Connect()
     {
-        if(ConnectionHandler)
-        {
-            PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
-        }
+        DebugOut(DebugOutputTreshold::Debug) << "Starting io_service run in background thread" << std::endl;
+
+        PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
         if( !ConnectSocket() )
         {
             CurrentConnectionState = ConnectionState::ErrorConnecting;
@@ -602,20 +633,38 @@ else std::cout
         OpenXMPPStream();
         AsyncRead();
 
-        if(IOThread != nullptr)
-            return;
-
-        DebugOut(DebugOutputTreshold::Debug) << "Starting io_service run in background thread" << std::endl;
-        IOThread = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
+        if(IOThread == nullptr)
+            IOThread.reset(new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service)));
     }
 
     Connection::~Connection()
     {
+        DebugOut(DebugOutputTreshold::Debug) << "~Connection"  << std::endl;
         io_service.stop();
         while(!io_service.stopped())
             boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
-        IOThread->join();
-        delete IOThread;
+        if(IOThread != nullptr)
+            IOThread->join();
+    }
+
+
+    SharedConnection Connection::Create(const std::string &Hostname,
+                                   int Portnumber,
+                                   const JID &RequestedJID,
+                                   const std::string &Password,
+                                   StanzaCallback *StanzaHandler,
+                                   ConnectionCallback *ConnectionHandler,
+                                   DebugOutputTreshold DebugTreshold)
+    {
+        return boost::shared_ptr<Connection>(
+                    new Connection(Hostname,
+                                   Portnumber,
+                                   RequestedJID,
+                                   Password,
+                                   StanzaHandler,
+                                   ConnectionHandler,
+                                   DebugTreshold)
+                );
     }
 }

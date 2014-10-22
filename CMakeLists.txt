@@ -27,4 +27,4 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories($(PROJECT_SOURCE_DIR))
 add_subdirectory(DXMPP)
-add_subdirectory(Tests)
+add_subdirectory(Examples)

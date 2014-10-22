@@ -72,16 +72,19 @@ int main(int, const char **)
 {
     EchoBot Handler;
 
-    /*SharedConnection Uplink =*/ Connection::Create( string("deusexmachinae.se") /* Host */,
+    SharedConnection Uplink = Connection::Create( string("deusexmachinae.se") /* Host */,
                                                   5222 /* Port number */,
                                                   DXMPP::JID( "dxmpp@users/test" ) /* Requested JID */,
                                                   string("dxmpp") /* Password */,
                                                   &Handler /* Stanza callback handler */,
-                                                  &Handler /* Connection callback handler */);
+                                                  &Handler /* Connection callback handler */,
+                                                  Connection::DebugOutputTreshold::None);
 
     std::cout << "Entering fg loop." <<std::endl;
     while(!Handler.Quit)
     {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));
     }   
+
+    return 0;
 }

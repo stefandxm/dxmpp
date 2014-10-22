@@ -88,7 +88,7 @@ namespace DXMPP
         
         JID MyJID;
         
-        boost::thread *IOThread;
+        boost::scoped_ptr<boost::thread> IOThread;
         boost::asio::io_service io_service;
         boost::asio::ip::tcp::socket tcp_socket;
         boost::asio::ssl::context ssl_context;
@@ -150,32 +150,7 @@ namespace DXMPP
             const std::string &Password,
             StanzaCallback *StanzaHandler = nullptr,
             ConnectionCallback *ConnectionHandler = nullptr,
-            DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error)
-        :
-            StanzaHandler(StanzaHandler),
-            ConnectionHandler(ConnectionHandler),
-            DebugTreshold(DebugTreshold),
-            CurrentAuthenticationState(AuthenticationState::None),
-            MyJID(RequestedJID),
-            IOThread(nullptr),
-            io_service(),
-            tcp_socket(io_service),
-            ssl_context(boost::asio::ssl::context::sslv23),
-            ssl_socket(tcp_socket, ssl_context),
-            IncomingDocument(NULL)
-        {
-            FeaturesStartTLS = false;
-
-            SSLConnection = false;
-
-            ssl_socket.set_verify_mode(boost::asio::ssl::verify_peer);
-            ssl_socket.set_verify_callback(boost::bind(&Connection::verify_certificate, this, _1, _2));
-
-            this->Hostname = Hostname;
-            this->Portnumber = Portnumber;
-            this->Password = Password;
-            Connect();
-        }
+            DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
 
 
 
@@ -189,18 +164,7 @@ namespace DXMPP
                                        const std::string &Password,
                                        StanzaCallback *StanzaHandler = nullptr,
                                        ConnectionCallback *ConnectionHandler = nullptr,
-                                       DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error)
-        {
-            return boost::shared_ptr<Connection>(
-                        new Connection(Hostname,
-                                       Portnumber,
-                                       RequestedJID,
-                                       Password,
-                                       StanzaHandler,
-                                       ConnectionHandler,
-                                       DebugTreshold)
-                    );
-        }
+                                       DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
         
         ~Connection();
     };
