@@ -15,6 +15,8 @@
 #include <DXMPP/Stanza.hpp>
 #include <DXMPP/StanzaCallback.hpp>
 #include <DXMPP/ConnectionCallback.hpp>
+#include <DXMPP/Network/AsyncTCPXMLClient.hpp>
+#include <DXMPP/Debug/DebugOutputTreshold.hpp>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -29,7 +31,9 @@ namespace DXMPP
 {
     typedef boost::shared_ptr<pugi::xml_node> SharedXMLNode;
 
-    class Connection : public boost::enable_shared_from_this<Connection>
+    class Connection
+            :
+            public boost::enable_shared_from_this<Connection>
     {
         enum class ConnectionState
         {
@@ -59,25 +63,17 @@ namespace DXMPP
         ConnectionCallback *ConnectionHandler;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
-    public:
-        enum class DebugOutputTreshold
-        {
-            None = 0,
-            Error = 1,
-            Debug = 2,
-        };
-
     private:
-        
+
+        DXMPP::Network::AsyncTCPXMLClient Client;
+
+        DebugOutputTreshold DebugTreshold;
+
         bool FeaturesSASL_DigestMD5;
         bool FeaturesSASL_CramMD5;
         bool FeaturesSASL_ScramSHA1;
         bool FeaturesSASL_Plain;        
-        DebugOutputTreshold DebugTreshold;
-        
-        bool SSLConnection;
         bool FeaturesStartTLS;
-        
         
         ConnectionState CurrentConnectionState;
         AuthenticationState CurrentAuthenticationState;
@@ -85,40 +81,15 @@ namespace DXMPP
         std::string Hostname;
         std::string Password;
         int Portnumber;
-        
         JID MyJID;
         
-        boost::scoped_ptr<boost::thread> IOThread;
-        boost::asio::io_service io_service;
-        boost::asio::ip::tcp::socket tcp_socket;
-        boost::asio::ssl::context ssl_context;
-        boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> ssl_socket;
 
         SASL::SASLMechanism *Authentication;
 
-        void HandleWrite(std::shared_ptr<std::string> Data, boost::system::error_code error);
-
+        void InitTLS();
+        void Connect();
         void OpenXMPPStream();
-        bool verify_certificate(bool preverified,
-                                boost::asio::ssl::verify_context& ctx);     
-        bool ConnectTLSSocket();
-        bool ConnectSocket();
-        static const int ReadDataBufferSize = 1024;
-        char ReadDataBuffer[ReadDataBufferSize];        
-        std::stringstream ReadDataStream;
-        
         void CheckStreamForFeatures();
-        void WriteXMLToSocket(pugi::xml_document *Doc);
-        void WriteTextToSocket(const std::string &Data);    
-        void InitTLS(); 
-
-        pugi::xml_document *IncomingDocument;
-
-
-        bool LoadXML(); 
-        pugi::xml_node SelectSingleXMLNode(const char* xpath);
-        pugi::xpath_node_set SelectXMLNodes(const char* xpath);
-
         void ClearReadDataStream();
 
         // who vomited?
@@ -137,10 +108,10 @@ namespace DXMPP
 
         void BindResource();
         void StartBind();
+
+        void ClientDisconnected();
+        void ClientGotData();
                 
-        void HandleRead(boost::system::error_code error, std::size_t bytes_transferred);
-        void AsyncRead();
-        void Connect();
 
         void BrodcastConnectionState(ConnectionCallback::ConnectionState NewState);
 

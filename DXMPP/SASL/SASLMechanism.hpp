@@ -12,6 +12,7 @@
 #include <DXMPP/pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
 #include <DXMPP/SASL/SaslChallengeParser.hpp>
+#include <DXMPP/Network/AsyncTCPXMLClient.hpp>
 
 namespace DXMPP
 {
@@ -38,14 +39,12 @@ namespace DXMPP
 
             JID MyJID;
             std::string Password;
+            DXMPP::Network::AsyncTCPXMLClient *Uplink;
 
-            typedef boost::function<void (const std::string&)> RawWriter;
-            RawWriter WriteTextToSocket;
-
-            SASLMechanism(const RawWriter &Writer,
+            SASLMechanism(DXMPP::Network::AsyncTCPXMLClient *Uplink,
                 const JID &MyJID, 
                 const std::string &Password)        
-                :MyJID(MyJID), Password(Password), WriteTextToSocket (Writer)
+                :MyJID(MyJID), Password(Password), Uplink (Uplink)
             {   
             }
             std::string SelectedNounce;

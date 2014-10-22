@@ -1,5 +1,5 @@
 //
-//  JID.hpp
+//  Stanza.hpp
 //  DXMPP
 //
 //  Created by Stefan Karlsson on 31/05/14.

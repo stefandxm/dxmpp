@@ -51,7 +51,7 @@ namespace DXMPP
             {
                 //ChosenSASLMechanism = SASLMechanisms::DIGEST_MD5;
                 string AuthXML ="<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='DIGEST-MD5'/>";
-                WriteTextToSocket(AuthXML);
+                Uplink->WriteTextToSocket(AuthXML);
             }
             
             string SASL_Mechanism_DigestMD5::GetMD5Hex(string Input)
@@ -136,7 +136,7 @@ namespace DXMPP
     
                 if(!rspauth.empty())
                 {
-                    WriteTextToSocket("<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>");
+                    Uplink->WriteTextToSocket("<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>");
                     return;
                 }
     
@@ -184,7 +184,7 @@ namespace DXMPP
                 
                 string ResponseXML = TStream.str();
                 
-                WriteTextToSocket(ResponseXML);
+                Uplink->WriteTextToSocket(ResponseXML);
             }
         }
     }

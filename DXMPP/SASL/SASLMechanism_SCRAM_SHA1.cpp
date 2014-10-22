@@ -61,7 +61,7 @@ namespace DXMPP
             << Request
             << "</auth>";
             string AuthXML = TStream.str();
-            WriteTextToSocket(AuthXML);
+            Uplink->WriteTextToSocket(AuthXML);
         }
 
         void SASL_Mechanism_SCRAM_SHA1::Challenge(const pugi::xpath_node &challenge)
@@ -168,7 +168,7 @@ namespace DXMPP
             TStream <<Base64EncodedResponse;
             TStream << "</response>";
             string ResponseXML = TStream.str();
-            WriteTextToSocket(ResponseXML);
+            Uplink->WriteTextToSocket(ResponseXML);
         }
     }
 }

@@ -78,7 +78,7 @@ int main(int, const char **)
                                                   string("dxmpp") /* Password */,
                                                   &Handler /* Stanza callback handler */,
                                                   &Handler /* Connection callback handler */,
-                                                  Connection::DebugOutputTreshold::None);
+                                                  DebugOutputTreshold::None);
 
     std::cout << "Entering fg loop." <<std::endl;
     while(!Handler.Quit)

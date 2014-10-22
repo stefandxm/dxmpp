@@ -83,7 +83,7 @@ namespace DXMPP
                 
     
                 std::string blaha = AuthXML.str();
-                WriteTextToSocket(AuthXML.str());            
+                Uplink->WriteTextToSocket(AuthXML.str());
             }
             
             void SASL_Mechanism_PLAIN::Challenge(const pugi::xpath_node &challenge)

@@ -22,10 +22,10 @@ namespace DXMPP
             public:
                 void Begin();
                 
-                SASL_Mechanism_PLAIN(const RawWriter &Writer,
+                SASL_Mechanism_PLAIN(DXMPP::Network::AsyncTCPXMLClient *Uplink,
                     const JID &MyJID, 
                     const std::string &Password)        
-                    :SASLMechanism(Writer, MyJID, Password)
+                    :SASLMechanism(Uplink, MyJID, Password)
                 {   
                 }            
                 
