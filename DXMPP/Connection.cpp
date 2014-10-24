@@ -430,15 +430,20 @@ else std::cout
         SubscribeCallback *SubscribeHandler,
         SubscribedCallback *SubscribedHandler,
         UnsubscribedCallback *UnsubscribedHandler,
+        TLSVerification *Verification,
+        TLSVerificationMode VerificationMode,
         DebugOutputTreshold DebugTreshold)
     :
+        SelfHostedVerifier(new TLSVerification(VerificationMode)),
         ConnectionHandler(ConnectionHandler),
         StanzaHandler(StanzaHandler),
-        Client(Hostname,
-               Portnumber,
-               boost::bind(&Connection::ClientDisconnected, this),
-               boost::bind(&Connection::ClientGotData, this),
-               DebugTreshold),
+        Client(
+                ((Verification != nullptr) ? Verification : SelfHostedVerifier.get()),
+                Hostname,
+                Portnumber,
+                boost::bind(&Connection::ClientDisconnected, this),
+                boost::bind(&Connection::ClientGotData, this),
+                DebugTreshold ),
         DebugTreshold(DebugTreshold),
         CurrentAuthenticationState(AuthenticationState::None),
         MyJID(RequestedJID),
@@ -476,10 +481,12 @@ else std::cout
     }
 
 
+
     SharedConnection Connection::Create(const std::string &Hostname,
                                     int Portnumber,
                                     const JID &RequestedJID,
                                     const std::string &Password,
+                                    TLSVerificationMode VerificationMode,
                                     ConnectionCallback *ConnectionHandler,
                                     StanzaCallback *StanzaHandler,
                                     PresenceCallback *PresenceHandler,
@@ -499,9 +506,44 @@ else std::cout
                                    SubscribeHandler,
                                    SubscribedHandler,
                                    UnsubscribedHandler,
+                                   nullptr,
+                                   VerificationMode,
                                    DebugTreshold)
                 );
     }
+
+
+    SharedConnection Connection::Create(const std::string &Hostname,
+                                    int Portnumber,
+                                    const JID &RequestedJID,
+                                    const std::string &Password,
+                                    ConnectionCallback *ConnectionHandler,
+                                    StanzaCallback *StanzaHandler,
+                                    PresenceCallback *PresenceHandler,
+                                    SubscribeCallback *SubscribeHandler,
+                                    SubscribedCallback *SubscribedHandler,
+                                    UnsubscribedCallback *UnsubscribedHandler,
+                                    TLSVerification *Verification,
+                                    DebugOutputTreshold DebugTreshold)
+    {
+        return boost::shared_ptr<Connection>(
+                    new Connection(Hostname,
+                                   Portnumber,
+                                   RequestedJID,
+                                   Password,
+                                   ConnectionHandler,
+                                   StanzaHandler,
+                                   PresenceHandler,
+                                   SubscribeHandler,
+                                   SubscribedHandler,
+                                   UnsubscribedHandler,
+                                   Verification,
+                                   (Verification!=nullptr?Verification->Mode:TLSVerificationMode::RFC2818_Hostname),
+                                   DebugTreshold)
+                );
+    }
+
+
 
     void Connection::ClientDisconnected()
     {

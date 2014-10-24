@@ -11,6 +11,7 @@
 
 #include <DXMPP/pugixml/pugixml.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
+#include <DXMPP/TLSVerification.hpp>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -26,6 +27,8 @@ namespace DXMPP
     {
         class AsyncTCPXMLClient
         {
+            TLSVerification *TLSConfig;
+
             DebugOutputTreshold DebugTreshold;
             bool HasUnFetchedXML;
 
@@ -51,6 +54,7 @@ namespace DXMPP
             };
 
 
+
             std::string Hostname;
             int Portnumber;
 
@@ -70,7 +74,7 @@ namespace DXMPP
             bool ConnectTLSSocket();
             bool ConnectSocket();
 
-            bool verify_certificate(bool preverified,
+            bool VerifyCertificate(bool preverified,
                                     boost::asio::ssl::verify_context& ctx);
 
             void WriteXMLToSocket(pugi::xml_document *Doc);
@@ -111,12 +115,14 @@ namespace DXMPP
             ErrorCallbackFunction ErrorCallback;
             GotDataCallbackFunction GotDataCallback;
 
-            AsyncTCPXMLClient( const std::string &Hostname,
-                               int Portnumber,
+            AsyncTCPXMLClient( TLSVerification *TLSConfig,
+                               const std::string &Hostname,
+                               int Portnumber,                               
                                const ErrorCallbackFunction &ErrorCallback,
                                const GotDataCallbackFunction &GotDataCallback,
                                DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error)
                 :
+                  TLSConfig(TLSConfig),
                   DebugTreshold(DebugTreshold),
                   HasUnFetchedXML(false),
                   SSLBuffer( boost::asio::buffer(ReadDataBufferSSL, ReadDataBufferSize) ),
@@ -140,8 +146,16 @@ namespace DXMPP
                 CurrentConnectionState = ConnectionState::Disconnected;                
 
                 ssl_socket.set_verify_mode(boost::asio::ssl::verify_peer);
-                //ssl_socket.set_verify_callback(ssl::rfc2818_verification("host.name"));
-                ssl_socket.set_verify_callback(boost::bind(&AsyncTCPXMLClient::verify_certificate, this, _1, _2));
+                switch(TLSConfig->Mode)
+                {
+                case TLSVerificationMode::RFC2818_Hostname:
+                    ssl_socket.set_verify_callback(boost::asio::ssl::rfc2818_verification("host.name"));
+                    break;
+                case TLSVerificationMode::Custom:
+                case TLSVerificationMode::None:
+                    ssl_socket.set_verify_callback(boost::bind(&AsyncTCPXMLClient::VerifyCertificate, this, _1, _2));
+                    break;
+                }
 
                 this->Hostname = Hostname;
                 this->Portnumber = Portnumber;

@@ -198,7 +198,7 @@ else std::cout
             return true;
         }
 
-        bool AsyncTCPXMLClient::verify_certificate(bool preverified,
+        bool AsyncTCPXMLClient::VerifyCertificate(bool preverified,
                                 boost::asio::ssl::verify_context& ctx)
         {
             // The verify callback can be used to check whether the certificate that is
@@ -215,7 +215,11 @@ else std::cout
             X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
             std::cout << "Verifying " << subject_name << "\n";
     #endif
-            return true;
+
+            if( TLSConfig->Mode == TLSVerificationMode::None)
+                return true;
+
+            return TLSConfig->VerifyCertificate(preverified, ctx);
         }
 
         void AsyncTCPXMLClient::HandleWrite(std::shared_ptr<std::string> Data,

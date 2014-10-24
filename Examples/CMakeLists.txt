@@ -8,6 +8,13 @@ add_executable(rosterbot
     RosterBot.cpp
 )
 
+add_executable(tlsbot
+    TLSBot.cpp
+)
+
+target_link_libraries(tlsbot
+    dxmpp
+)
 target_link_libraries(echobot
 	dxmpp
 )

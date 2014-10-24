@@ -34,7 +34,11 @@ public:
             return;
 
         if( string(Body.text().as_string()) == "quit")
+        {
+            std::cout << "Received quit. Quiting" << std::endl;
             Quit = true;
+            return;
+        }
 
         cout << "Echoing message '" << Body.text().as_string() << "' from " << Stanza->From.GetFullJID() << std::endl;
 
@@ -72,10 +76,13 @@ int main(int, const char **)
 {
     EchoBot Handler;
 
+    // Please note we are using selfsigned certificates on dev server so need to pass
+    // TLSVerificationMode::None. This should not be done in production.
     SharedConnection Uplink = Connection::Create( string("deusexmachinae.se") /* Host */,
                                                   5222 /* Port number */,
                                                   DXMPP::JID( "dxmpp@users" ) /* Requested JID */,
                                                   string("dxmpp") /* Password */,
+                                                  TLSVerificationMode::None,
                                                   &Handler /* Connection callback handler */,
                                                   &Handler /* Stanza callback handler */);
 

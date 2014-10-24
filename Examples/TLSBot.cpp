@@ -13,18 +13,14 @@ using namespace std;
 using namespace DXMPP;
 using namespace pugi;
 
-class RosterBot :
+class TLSBot :
         public StanzaCallback,
-        public ConnectionCallback,
-        public PresenceCallback,
-        public SubscribeCallback,
-        public SubscribedCallback,
-        public UnsubscribedCallback
+        public ConnectionCallback
 {
 public:
     volatile bool Quit;
 
-    RosterBot()
+    TLSBot()
         :
           Quit(false)
     {
@@ -74,52 +70,42 @@ public:
                 break;
         }
     }
-
-    void OnPresence(JID From, bool Available, int Priority, std::string Status, std::string Message)
-    {
-        std::cout << "Got presence from " << From.GetFullJID()
-                  << " available: " << Available
-                  << " priority " << Priority << " status \""
-                  << Status << "\" with message \""
-                  << Message << "\"" << std::endl;
-    }
-
-    SubscribeCallback::Response OnSubscribe(JID From)
-    {
-        std::cout << "Got subscribe request from " << From.GetFullJID()
-                  << " I've decided to make friend with her" << std::endl;
-
-        return SubscribeCallback::Response::Allow;
-    }
-
-    void OnSubscribed(JID To)
-    {
-        std::cout << "I am now friend with " << To.GetFullJID() << std::endl;
-    }
-
-    void OnUnsubscribed(JID From)
-    {
-        std::cout << From.GetFullJID() << " doesnt want to be friend with me anymore."
-                     << " I will cancel my friendship with her!" << std::endl;
-    }
 };
+
+class CustomTLSVerification
+        : public TLSVerification
+{
+public:
+    virtual bool VerifyCertificate(bool /*Preverified*/,
+                                   boost::asio::ssl::verify_context& /*ctx*/)
+    {
+        std::cout << "I should seriously verify this, but for now i will just reject" << std::endl;
+        return false;
+    }
+
+
+    CustomTLSVerification()
+        :
+          TLSVerification(TLSVerificationMode::Custom)
+    {
+    }
+
+};
+
 
 int main(int, const char **)
 {
-    RosterBot Handler;
+    TLSBot Handler;
 
-    // Please note we are using selfsigned certificates on dev server so need to pass
-    // TLSVerificationMode::None. This should not be done in production.
+    CustomTLSVerification Verifier;
+
     SharedConnection Uplink = Connection::Create( string("deusexmachinae.se") /* Host */,
                                                   5222 /* Port number */,
                                                   DXMPP::JID( "dxmpp@users" ) /* Requested JID */,
                                                   string("dxmpp") /* Password */,
                                                   &Handler /* Connection callback handler */,
                                                   &Handler /* Stanza callback handler */,
-                                                  &Handler /* Presence callback handler */,
-                                                  &Handler /* Subscribe callback handler */,
-                                                  &Handler /* Subscribed callback handler */,
-                                                  &Handler /* Unsubscribed callback handler */);
+                                                  nullptr,nullptr,nullptr,nullptr,&Verifier);
 
     std::cout << "Entering fg loop." <<std::endl;
     while(!Handler.Quit)

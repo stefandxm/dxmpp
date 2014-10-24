@@ -60,15 +60,16 @@ namespace DXMPP
             Authenticated
         };
 
+        boost::scoped_ptr<TLSVerification> SelfHostedVerifier;
         ConnectionCallback *ConnectionHandler;
         StanzaCallback *StanzaHandler;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
-    private:
-
         DXMPP::Network::AsyncTCPXMLClient Client;
 
         DebugOutputTreshold DebugTreshold;
+
+
 
         bool FeaturesSASL_DigestMD5;
         bool FeaturesSASL_CramMD5;
@@ -126,6 +127,8 @@ namespace DXMPP
             SubscribeCallback *SubscribeHandler = nullptr,
             SubscribedCallback *SubscribedHandler = nullptr,
             UnsubscribedCallback *UnsubscribedHandler = nullptr,
+            TLSVerification *Verification = nullptr,
+            TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
             DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
 
     public:
@@ -145,8 +148,22 @@ namespace DXMPP
                                        SubscribeCallback *SubscribeHandler = nullptr,
                                        SubscribedCallback *SubscribedHandler = nullptr,
                                        UnsubscribedCallback *UnsubscribedHandler = nullptr,
+                                       TLSVerification *Verification = nullptr,
                                        DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
-        
+
+        static SharedConnection Create(const std::string &Hostname,
+                                       int Portnumber,
+                                       const JID &RequestedJID,
+                                       const std::string &Password,
+                                       TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
+                                       ConnectionCallback *ConnectionHandler = nullptr,
+                                       StanzaCallback *StanzaHandler = nullptr,
+                                       PresenceCallback *PresenceHandler = nullptr,
+                                       SubscribeCallback *SubscribeHandler = nullptr,
+                                       SubscribedCallback *SubscribedHandler = nullptr,
+                                       UnsubscribedCallback *UnsubscribedHandler = nullptr,
+                                       DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
+
         ~Connection();
     };
 }
