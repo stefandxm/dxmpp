@@ -14,7 +14,7 @@ Boost, Crypto++, OpenSSL, Pugi XML.
 
 Contributors in order of appearance
 -----------
-Stefan Karlsson, Stefan Marton.
+Stefan Karlsson, Stefan Marton, Florent Le Coz
 
 Contact
 -----------
