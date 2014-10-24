@@ -14,6 +14,7 @@ add_library(dxmpp
 	Roster.cpp
 
 # pure headers added for IDE project files
+    JID.hpp
     TLSVerification.hpp
 	Stanza.hpp
 	StanzaCallback.hpp
