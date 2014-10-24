@@ -35,12 +35,13 @@ public:
 
         if( string(Body.text().as_string()) == "quit")
         {
-            std::cout << "Received quit. Quiting" << std::endl;
+            cout << "Received quit. Quiting" << endl;
             Quit = true;
             return;
         }
 
-        cout << "Echoing message '" << Body.text().as_string() << "' from " << Stanza->From.GetFullJID() << std::endl;
+        cout << "Echoing message '" << Body.text().as_string() << "' from "
+             << Stanza->From.GetFullJID() << endl;
 
 
         SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
@@ -79,7 +80,7 @@ public:
     virtual bool VerifyCertificate(bool /*Preverified*/,
                                    boost::asio::ssl::verify_context& /*ctx*/)
     {
-        std::cout << "I should seriously verify this, but for now i will just reject" << std::endl;
+        cout << "I should seriously verify this, but for now i will just reject" << endl;
         return false;
     }
 
@@ -107,7 +108,7 @@ int main(int, const char **)
                                                   &Handler /* Stanza callback handler */,
                                                   nullptr,nullptr,nullptr,nullptr,&Verifier);
 
-    std::cout << "Entering fg loop." <<std::endl;
+    cout << "Entering fg loop." <<endl;
     while(!Handler.Quit)
     {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));

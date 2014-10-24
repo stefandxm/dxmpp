@@ -35,12 +35,13 @@ public:
 
         if( string(Body.text().as_string()) == "quit")
         {
-            std::cout << "Received quit. Quiting" << std::endl;
+            cout << "Received quit. Quiting" << endl;
             Quit = true;
             return;
         }
 
-        cout << "Echoing message '" << Body.text().as_string() << "' from " << Stanza->From.GetFullJID() << std::endl;
+        cout << "Echoing message '" << Body.text().as_string() << "' from "
+             << Stanza->From.GetFullJID() << endl;
 
 
         SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
@@ -86,7 +87,7 @@ int main(int, const char **)
                                                   &Handler /* Connection callback handler */,
                                                   &Handler /* Stanza callback handler */);
 
-    std::cout << "Entering fg loop." <<std::endl;
+    cout << "Entering fg loop." << endl;
     while(!Handler.Quit)
     {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));

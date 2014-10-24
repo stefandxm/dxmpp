@@ -39,12 +39,13 @@ public:
 
         if( string(Body.text().as_string()) == "quit")
         {
-            std::cout << "Received quit. Quiting" << std::endl;
+            cout << "Received quit. Quiting" << endl;
             Quit = true;
             return;
         }
 
-        cout << "Echoing message '" << Body.text().as_string() << "' from " << Stanza->From.GetFullJID() << std::endl;
+        cout << "Echoing message '" << Body.text().as_string() << "' from "
+             << Stanza->From.GetFullJID() << endl;
 
 
         SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
@@ -75,32 +76,36 @@ public:
         }
     }
 
-    void OnPresence(JID From, bool Available, int Priority, std::string Status, std::string Message)
+    void OnPresence(JID From,
+                    bool Available,
+                    int Priority,
+                    string Status,
+                    string Message)
     {
-        std::cout << "Got presence from " << From.GetFullJID()
-                  << " available: " << Available
-                  << " priority " << Priority << " status \""
-                  << Status << "\" with message \""
-                  << Message << "\"" << std::endl;
+        cout << "Got presence from " << From.GetFullJID()
+             << " available: " << Available
+             << " priority " << Priority << " status \""
+             << Status << "\" with message \""
+             << Message << "\"" << endl;
     }
 
     SubscribeCallback::Response OnSubscribe(JID From)
     {
-        std::cout << "Got subscribe request from " << From.GetFullJID()
-                  << " I've decided to make friend with her" << std::endl;
+        cout << "Got subscribe request from " << From.GetFullJID()
+             << " I've decided to make friend with her" << endl;
 
         return SubscribeCallback::Response::AllowAndSubscribe;
     }
 
     void OnSubscribed(JID To)
     {
-        std::cout << "I am now friend with " << To.GetFullJID() << std::endl;
+        cout << "I am now friend with " << To.GetFullJID() << endl;
     }
 
     void OnUnsubscribed(JID From)
     {
-        std::cout << From.GetFullJID() << " doesnt want to be friend with me anymore."
-                     << " I will cancel my friendship with her!" << std::endl;
+        cout << From.GetFullJID() << " doesnt want to be friend with me anymore."
+             << " I will cancel my friendship with her!" << endl;
     }
 };
 
@@ -122,7 +127,7 @@ int main(int, const char **)
                                                   &Handler /* Subscribed callback handler */,
                                                   &Handler /* Unsubscribed callback handler */);
 
-    std::cout << "Entering fg loop." <<std::endl;
+    cout << "Entering fg loop." << endl;
     while(!Handler.Quit)
     {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));
