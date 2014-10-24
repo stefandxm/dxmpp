@@ -186,6 +186,11 @@ namespace DXMPP
                 
                 Uplink->WriteTextToSocket(ResponseXML);
             }
+
+            bool SASL_Mechanism_DigestMD5::Verify(const pugi::xpath_node &SuccessTag)
+            {
+                return true;
+            }
         }
     }
 }

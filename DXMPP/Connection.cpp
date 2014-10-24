@@ -208,11 +208,10 @@ else std::cout
 
         if(!Client.SelectSingleXMLNode("//proceed"))
         {
-            std::cerr << "No proceed?!";
+            std::cerr << "No proceed tag; B0rked SSL?!";
 
             BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
             CurrentConnectionState = ConnectionState::ErrorUnknown;
-
             return;
         }
 
@@ -313,6 +312,15 @@ else std::cout
 
         if(success)
         {
+            success.print(std::cout);
+            if( !Authentication->Verify(success) )
+            {
+                std::cerr << "Bad success verification from server" << std::endl;
+                BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorAuthenticating);
+                CurrentConnectionState = ConnectionState::ErrorAuthenticating;
+
+                return;
+            }
             DebugOut(DebugOutputTreshold::Debug) << std::endl<< "Authentication succesfull." << std::endl;
             StartBind();
         }

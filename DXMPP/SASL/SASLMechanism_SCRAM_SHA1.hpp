@@ -22,6 +22,8 @@ namespace DXMPP
     
         class SASL_Mechanism_SCRAM_SHA1 : public SASLMechanism
         {
+            std::string ServerProof;
+
         public:
             void Begin();
             
@@ -33,6 +35,7 @@ namespace DXMPP
             }            
             
             void Challenge(const pugi::xpath_node &challenge);
+            bool Verify(const pugi::xpath_node &SuccessTag);
         };
     }
 }

@@ -50,8 +50,8 @@ namespace DXMPP
             std::string SelectedNounce;
 
             virtual void Begin() = 0;
-
-            virtual void Challenge(const pugi::xpath_node &challenge) = 0;
+            virtual void Challenge(const pugi::xpath_node &ChallengeTag) = 0;
+            virtual bool Verify(const pugi::xpath_node &SuccessTag) = 0;
         };
     }
 }

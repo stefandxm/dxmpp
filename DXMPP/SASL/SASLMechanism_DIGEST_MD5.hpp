@@ -32,6 +32,7 @@ namespace DXMPP
             }            
             
             void Challenge(const pugi::xpath_node &challenge);
+            bool Verify(const pugi::xpath_node &SuccessTag);
         };
     }
     }

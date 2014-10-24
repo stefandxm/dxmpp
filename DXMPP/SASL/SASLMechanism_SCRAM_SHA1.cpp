@@ -151,12 +151,15 @@ namespace DXMPP
 
             CryptoPP::HMAC< SHAVersion > hmacFromServerKey(ServerKey, digestlength);
             hmacFromServerKey.CalculateDigest( ServerSignature, (byte*)AuthMessage.c_str(), AuthMessage.length());
+            CryptoPP::ArraySource(ServerSignature, digestlength, true,
+                                        new CryptoPP::Base64Encoder(new CryptoPP::StringSink(ServerProof), false));
+
 
             // nu har vi räknat ut alla jävla saker vi egentligen behöver..
             TStream.str("");
             // convert something into p.. i guess client proof to base 64?
             CryptoPP::ArraySource(ClientProof, digestlength, true,
-                                        new CryptoPP::Base64Encoder(new CryptoPP::StringSink(p)));
+                                        new CryptoPP::Base64Encoder(new CryptoPP::StringSink(p), false));
 
             TStream << "c=" << c << ",r=" << r << ",p=" << p;
             string Response = TStream.str();
@@ -165,10 +168,20 @@ namespace DXMPP
 
             TStream.str("");
             TStream << "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>";
-            TStream <<Base64EncodedResponse;
+            TStream << Base64EncodedResponse;
             TStream << "</response>";
             string ResponseXML = TStream.str();
             Uplink->WriteTextToSocket(ResponseXML);
+        }
+
+        bool SASL_Mechanism_SCRAM_SHA1::Verify(const pugi::xpath_node &SuccessTag)
+        {
+            std::string SuccessVal = SuccessTag.node().text().as_string();
+            string DecodedSuccess= DecodeBase64(SuccessVal);
+            string ServerProofValidResponse = string("v=") + ServerProof;
+            //std::cout << "DecodedSuccess = \"" << DecodedSuccess << "\"" <<std::endl;
+            //std::cout << "ServerProof = \"" << ServerProofValidResponse << "\"" << std::endl;
+            return DecodedSuccess == ServerProofValidResponse;
         }
     }
 }

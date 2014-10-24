@@ -88,6 +88,12 @@ namespace DXMPP
             void SASL_Mechanism_PLAIN::Challenge(const pugi::xpath_node &challenge)
             {
             }
+
+            bool SASL_Mechanism_PLAIN::Verify(const pugi::xpath_node &SuccessTag)
+            {
+                return true;
+            }
+
         }
     }
 }
