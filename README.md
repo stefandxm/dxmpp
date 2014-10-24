@@ -18,5 +18,5 @@ Stefan Karlsson, Stefan Marton, Florent Le Coz.
 
 Contact
 -----------
-IRC: stefandxm @ freenode
+IRC: stefandxm @ freenode.
 E-mail: stefan -at- skogome -dot- net 
