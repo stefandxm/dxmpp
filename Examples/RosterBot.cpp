@@ -89,7 +89,7 @@ public:
         std::cout << "Got subscribe request from " << From.GetFullJID()
                   << " I've decided to make friend with her" << std::endl;
 
-        return SubscribeCallback::Response::Allow;
+        return SubscribeCallback::Response::AllowAndSubscribe;
     }
 
     void OnSubscribed(JID To)

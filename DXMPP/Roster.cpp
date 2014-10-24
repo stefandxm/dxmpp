@@ -18,7 +18,25 @@ namespace DXMPP
 
         JID From(Node.attribute("from").value());
 
-        SubscribeHandler->OnSubscribe(From);
+        SubscribeCallback::Response SubscribeResponse = SubscribeHandler->OnSubscribe(From);
+
+
+        if( SubscribeResponse == SubscribeCallback::Response::Reject )
+            return;
+
+        pugi::xml_document doc;
+        pugi::xml_node PresenceTag = doc.append_child("presence");
+        pugi::xml_node SubscribeTag = PresenceTag.append_child("subscribed");
+
+        SubscribeTag.append_attribute("to");
+        SubscribeTag.attribute("to").set_value(From.GetBareJID().c_str());
+
+        Uplink->WriteXMLToSocket(&doc);
+
+        if(SubscribeResponse != SubscribeCallback::Response::Allow)
+            return;
+
+        Subscribe(From);
     }
 
     void RosterMaintaner::HandleSubscribed(pugi::xml_node Node)
@@ -89,7 +107,7 @@ namespace DXMPP
         PresenceHandler->OnPresence(From, Type != "unavailable", Priority, Status, Show);
     }
 
-    void RosterMaintaner::Subscribe(JID To, std::string Message)
+    void RosterMaintaner::Subscribe(JID To)
     {
         pugi::xml_document doc;
         pugi::xml_node PresenceTag = doc.append_child("presence");

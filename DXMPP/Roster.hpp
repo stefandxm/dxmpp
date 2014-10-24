@@ -27,6 +27,7 @@ namespace  DXMPP
         enum class Response
         {
             Allow,
+            AllowAndSubscribe,
             Reject
         };
 
@@ -70,7 +71,7 @@ namespace  DXMPP
 
 
         // User functions
-        void Subscribe(JID To, std::string Message);
+        void Subscribe(JID To);
         void Unsubscribe(JID To);
 
         RosterMaintaner(DXMPP::Network::AsyncTCPXMLClient *Uplink,
