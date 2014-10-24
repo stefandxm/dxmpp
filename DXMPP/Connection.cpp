@@ -312,7 +312,6 @@ else std::cout
 
         if(success)
         {
-            success.print(std::cout);
             if( !Authentication->Verify(success) )
             {
                 std::cerr << "Bad success verification from server" << std::endl;

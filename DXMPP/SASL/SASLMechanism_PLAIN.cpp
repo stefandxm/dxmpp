@@ -79,9 +79,8 @@ namespace DXMPP
                 AuthXML << "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>";// << std::endl;
                 AuthXML << EncodedResponse;
                 AuthXML << "</auth>";
-                
-    
-                std::string blaha = AuthXML.str();
+                    
+                //std::string blaha = AuthXML.str();
                 Uplink->WriteTextToSocket(AuthXML.str());
             }
             
@@ -93,7 +92,6 @@ namespace DXMPP
             {
                 return true;
             }
-
         }
     }
 }
