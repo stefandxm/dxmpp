@@ -233,7 +233,7 @@ else std::cout
                 return;
             }
 
-            DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
+            //DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
         }
 
         bool AsyncTCPXMLClient::ConnectTLSSocket()
