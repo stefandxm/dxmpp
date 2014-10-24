@@ -11,6 +11,8 @@ add_library(dxmpp
     SASL/SASLMechanism_SCRAM_SHA1.cpp
     SASL/SASLMechanism_DIGEST_MD5.cpp
 
+	Roster.cpp
+
 # pure headers added for IDE project files
 	Stanza.hpp
 	StanzaCallback.hpp

@@ -15,7 +15,11 @@ using namespace pugi;
 
 class EchoBot :
         public StanzaCallback,
-        public ConnectionCallback
+        public ConnectionCallback,
+        public PresenceCallback,
+        public SubscribeCallback,
+        public SubscribedCallback,
+        public UnsubscribedCallback
 {
 public:
     volatile bool Quit;
@@ -66,6 +70,34 @@ public:
                 break;
         }
     }
+
+    void OnPresence(JID From, bool Available, int Priority, std::string Status, std::string Message)
+    {
+        std::cout << "Got presence from " << From.GetFullJID()
+                  << " available: " << Available
+                  << " priority " << Priority << " status \""
+                  << Status << "\" with message \""
+                  << Message << "\"" << std::endl;
+    }
+
+    SubscribeCallback::Response OnSubscribe(JID From)
+    {
+        std::cout << "Got subscribe request from " << From.GetFullJID()
+                  << " I've decided to make friend with her" << std::endl;
+
+        return SubscribeCallback::Response::Allow;
+    }
+
+    void OnSubscribed(JID To)
+    {
+        std::cout << "I am now friend with " << To.GetFullJID() << std::endl;
+    }
+
+    void OnUnsubscribed(JID From)
+    {
+        std::cout << From.GetFullJID() << " doesnt want to be friend with me anymore."
+                     << " I will cancel my friendship with her!" << std::endl;
+    }
 };
 
 int main(int, const char **)
@@ -77,7 +109,12 @@ int main(int, const char **)
                                                   DXMPP::JID( "dxmpp@users" ) /* Requested JID */,
                                                   string("dxmpp") /* Password */,
                                                   &Handler /* Connection callback handler */,
-                                                  &Handler /* Stanza callback handler */);
+                                                  &Handler /* Stanza callback handler */,
+                                                  &Handler /* Presence callback handler */,
+                                                  &Handler /* Subscribe callback handler */,
+                                                  &Handler /* Subscribed callback handler */,
+                                                  &Handler /* Unsubscribed callback handler */,
+                                                  DebugOutputTreshold::Error);
 
     std::cout << "Entering fg loop." <<std::endl;
     while(!Handler.Quit)

@@ -64,7 +64,7 @@ else std::cout
 
     void Connection::CheckStreamForFeatures()
     {
-        string str = Client.ReadDataStream.str();
+        string str = Client.ReadDataStream->str();
         size_t streamfeatures = str.find("</stream:features>");
             
         if(streamfeatures == string::npos)
@@ -87,7 +87,7 @@ else std::cout
         // note to self: cant use loadxml() here because this is not valid xml!!!!
         // due to <stream> <stream::features></stream::features>
         xml_document xdoc;
-        xdoc.load(Client.ReadDataStream, parse_full&~parse_eol, encoding_auto);
+        xdoc.load(*Client.ReadDataStream, parse_full&~parse_eol, encoding_auto);
             
         Client.ClearReadDataStream();
 
@@ -184,7 +184,7 @@ else std::cout
     // Explicit string hax
     void Connection::CheckForStreamEnd()
     {
-        string str = Client.ReadDataStream.str();
+        string str = Client.ReadDataStream->str();
         size_t streamend = str.find("</stream:stream>");
         if(streamend == string::npos)
             streamend = str.find("</stream>");
@@ -235,7 +235,7 @@ else std::cout
 
             return;
         }
-        
+
         // TODO: Verify iq response..
 
         string Presence = "<presence/>";
@@ -352,6 +352,19 @@ else std::cout
             StanzaHandler->StanzaReceived( SharedStanza(new Stanza(Client.FetchDocument(), message.node())), shared_from_this());
     }
 
+    void Connection::CheckForPresence()
+    {
+        if(!Client.LoadXML())
+            return;
+
+        xpath_node presence = Client.SelectSingleXMLNode("//presence");
+        if(!presence)
+            return;
+
+        Roster.OnPresence(presence.node());
+    }
+
+
     SharedStanza Connection::CreateStanza(const JID &TargetJID)
     {
         SharedStanza ReturnValue(new Stanza());
@@ -396,6 +409,7 @@ else std::cout
                 break;
             case ConnectionState::Connected:
                 BrodcastConnectionState(ConnectionCallback::ConnectionState::Connected);
+                CheckForPresence();
                 CheckStreamForStanza();
                 break;
         default:
@@ -406,21 +420,33 @@ else std::cout
     }
         
 
-
     Connection::Connection(const std::string &Hostname,
         int Portnumber,
         const JID &RequestedJID,
         const std::string &Password,
-        StanzaCallback *StanzaHandler,
         ConnectionCallback *ConnectionHandler,
+        StanzaCallback *StanzaHandler,
+        PresenceCallback *PresenceHandler,
+        SubscribeCallback *SubscribeHandler,
+        SubscribedCallback *SubscribedHandler,
+        UnsubscribedCallback *UnsubscribedHandler,
         DebugOutputTreshold DebugTreshold)
     :
-        StanzaHandler(StanzaHandler),
         ConnectionHandler(ConnectionHandler),
-        Client(Hostname, Portnumber, boost::bind(&Connection::ClientDisconnected, this), boost::bind(&Connection::ClientGotData, this), DebugTreshold),
+        StanzaHandler(StanzaHandler),
+        Client(Hostname,
+               Portnumber,
+               boost::bind(&Connection::ClientDisconnected, this),
+               boost::bind(&Connection::ClientGotData, this),
+               DebugTreshold),
         DebugTreshold(DebugTreshold),
         CurrentAuthenticationState(AuthenticationState::None),
-        MyJID(RequestedJID)
+        MyJID(RequestedJID),
+        Roster(&Client,
+               PresenceHandler,
+               SubscribeHandler,
+               SubscribedHandler,
+               UnsubscribedHandler)
     {
         FeaturesStartTLS = false;
 
@@ -451,20 +477,28 @@ else std::cout
 
 
     SharedConnection Connection::Create(const std::string &Hostname,
-                                   int Portnumber,
-                                   const JID &RequestedJID,
-                                   const std::string &Password,
-                                   StanzaCallback *StanzaHandler,
-                                   ConnectionCallback *ConnectionHandler,
-                                   DebugOutputTreshold DebugTreshold)
+                                    int Portnumber,
+                                    const JID &RequestedJID,
+                                    const std::string &Password,
+                                    ConnectionCallback *ConnectionHandler,
+                                    StanzaCallback *StanzaHandler,
+                                    PresenceCallback *PresenceHandler,
+                                    SubscribeCallback *SubscribeHandler,
+                                    SubscribedCallback *SubscribedHandler,
+                                    UnsubscribedCallback *UnsubscribedHandler,
+                                    DebugOutputTreshold DebugTreshold)
     {
         return boost::shared_ptr<Connection>(
                     new Connection(Hostname,
                                    Portnumber,
                                    RequestedJID,
                                    Password,
-                                   StanzaHandler,
                                    ConnectionHandler,
+                                   StanzaHandler,
+                                   PresenceHandler,
+                                   SubscribeHandler,
+                                   SubscribedHandler,
+                                   UnsubscribedHandler,
                                    DebugTreshold)
                 );
     }

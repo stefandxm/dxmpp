@@ -17,6 +17,7 @@
 #include <DXMPP/ConnectionCallback.hpp>
 #include <DXMPP/Network/AsyncTCPXMLClient.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
+#include <DXMPP/Roster.hpp>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
@@ -25,6 +26,7 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include <sstream>
+
 
 
 namespace DXMPP
@@ -58,9 +60,8 @@ namespace DXMPP
             Authenticated
         };
 
-
-        StanzaCallback *StanzaHandler;
         ConnectionCallback *ConnectionHandler;
+        StanzaCallback *StanzaHandler;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
     private:
@@ -97,8 +98,9 @@ namespace DXMPP
         void CheckForWaitingForSession();
         void CheckForBindSuccess();
         void CheckForSASLData();
-        void CheckStreamForAuthenticationData();        
+        void CheckStreamForAuthenticationData();
         void CheckStreamForStanza();
+        void CheckForPresence();
 
         // this is ok (invalid xml)
         void CheckForStreamEnd();
@@ -110,8 +112,7 @@ namespace DXMPP
         void StartBind();
 
         void ClientDisconnected();
-        void ClientGotData();
-                
+        void ClientGotData();        
 
         void BrodcastConnectionState(ConnectionCallback::ConnectionState NewState);
 
@@ -119,13 +120,18 @@ namespace DXMPP
             int Portnumber,
             const JID &RequestedJID,
             const std::string &Password,
-            StanzaCallback *StanzaHandler = nullptr,
             ConnectionCallback *ConnectionHandler = nullptr,
+            StanzaCallback *StanzaHandler = nullptr,
+            PresenceCallback *PresenceHandler = nullptr,
+            SubscribeCallback *SubscribeHandler = nullptr,
+            SubscribedCallback *SubscribedHandler = nullptr,
+            UnsubscribedCallback *UnsubscribedHandler = nullptr,
             DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
 
-
-
     public:
+
+        RosterMaintaner Roster;
+
         SharedStanza CreateStanza(const JID &Target);
         void SendStanza(SharedStanza Stanza);
         
@@ -133,8 +139,12 @@ namespace DXMPP
                                        int Portnumber,
                                        const JID &RequestedJID,
                                        const std::string &Password,
-                                       StanzaCallback *StanzaHandler = nullptr,
                                        ConnectionCallback *ConnectionHandler = nullptr,
+                                       StanzaCallback *StanzaHandler = nullptr,
+                                       PresenceCallback *PresenceHandler = nullptr,
+                                       SubscribeCallback *SubscribeHandler = nullptr,
+                                       SubscribedCallback *SubscribedHandler = nullptr,
+                                       UnsubscribedCallback *UnsubscribedHandler = nullptr,
                                        DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
         
         ~Connection();

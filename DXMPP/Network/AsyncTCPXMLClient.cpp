@@ -27,6 +27,7 @@ else std::cout
         pugi::xml_document *AsyncTCPXMLClient::FetchDocument()
         {
             pugi::xml_document *RVal = IncomingDocument;
+            HasUnFetchedXML = false;
 
             IncomingDocument = nullptr;
             return  RVal;
@@ -34,7 +35,7 @@ else std::cout
 
         void AsyncTCPXMLClient::ClearReadDataStream()
         {
-            ReadDataStream.str(string(""));
+            ReadDataStream->str(string(""));
         }
 
         void AsyncTCPXMLClient::ForkIO()
@@ -43,9 +44,18 @@ else std::cout
                 IOThread.reset(new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service)));
         }
 
-        void AsyncTCPXMLClient::HandleRead(boost::system::error_code error,
-            std::size_t bytes_transferred)
+        void AsyncTCPXMLClient::HandleRead(
+                char * ActiveBuffer,
+                const boost::system::error_code& error,
+                std::size_t bytes_transferred)
         {
+            ReadDataBuffer = ActiveBuffer;
+
+            if( ReadDataBuffer == ReadDataBufferSSL )
+                ReadDataStream = &ReadDataStreamSSL;
+            else
+                ReadDataStream = &ReadDataStreamNonSSL;
+
             if(error)
             {
                 CurrentConnectionState = ConnectionState::Error;
@@ -54,10 +64,16 @@ else std::cout
                 return;
             }
 
-            ReadDataStream.write(ReadDataBuffer, bytes_transferred);
-            DebugOut(DebugOutputTreshold::Debug).write(ReadDataBuffer, bytes_transferred);
-            DebugOut(DebugOutputTreshold::Debug) << flush;
-            GotDataCallback();
+            if( bytes_transferred > 0 )
+            {
+                ReadDataStream->write(ReadDataBuffer, bytes_transferred);
+                DebugOut(DebugOutputTreshold::Debug).write(ReadDataBuffer, bytes_transferred);
+                DebugOut(DebugOutputTreshold::Debug) << flush;
+                GotDataCallback();
+
+                if(HasUnFetchedXML)
+                    delete FetchDocument();
+            }
             AsyncRead();
         }
 
@@ -65,15 +81,23 @@ else std::cout
         {
             if(SSLConnection)
             {
-                boost::asio::async_read(ssl_socket, boost::asio::buffer(ReadDataBuffer, ReadDataBufferSize),
+                boost::asio::async_read(ssl_socket, SSLBuffer,
                                         boost::asio::transfer_at_least(1),
-                                        boost::bind(&AsyncTCPXMLClient::HandleRead,this, boost::asio::placeholders::error, _2));
+                                        boost::bind(&AsyncTCPXMLClient::HandleRead,
+                                                    this,
+                                                    ReadDataBufferSSL,
+                                                    boost::asio::placeholders::error,
+                                                    boost::asio::placeholders::bytes_transferred));
             }
             else
             {
-                boost::asio::async_read(tcp_socket, boost::asio::buffer(ReadDataBuffer, ReadDataBufferSize),
+                boost::asio::async_read(tcp_socket, NonSSLBuffer,
                                         boost::asio::transfer_at_least(1),
-                                        boost::bind(&AsyncTCPXMLClient::HandleRead,this, boost::asio::placeholders::error, _2));
+                                        boost::bind(&AsyncTCPXMLClient::HandleRead,
+                                                    this,
+                                                    ReadDataBufferNonSSL,
+                                                    boost::asio::placeholders::error,
+                                                    boost::asio::placeholders::bytes_transferred));
             }
         }
 
@@ -88,9 +112,14 @@ else std::cout
             return IncomingDocument->select_nodes(xpath);
         }
 
+
+
         bool AsyncTCPXMLClient::LoadXML()
         {
-            string jox = ReadDataStream.str();
+            if(HasUnFetchedXML)
+                return true;
+
+            string jox = ReadDataStream->str();
             istringstream TStream(jox);
             if( IncomingDocument == NULL)
                 IncomingDocument = new pugi::xml_document();
@@ -99,6 +128,8 @@ else std::cout
 
             if(parseresult.status != xml_parse_status::status_ok)
                 return false;
+
+            HasUnFetchedXML = true;
 
             ClearReadDataStream();
 
@@ -140,6 +171,9 @@ else std::cout
 
         bool AsyncTCPXMLClient::ConnectSocket()
         {
+            ReadDataBuffer = ReadDataBufferNonSSL;
+            ReadDataStream = &ReadDataStreamNonSSL;
+
             tcp::resolver resolver(io_service);
             std::string SPortnumber;
             SPortnumber = boost::lexical_cast<string>( Portnumber);
@@ -184,7 +218,8 @@ else std::cout
             return true;
         }
 
-        void AsyncTCPXMLClient::HandleWrite(std::shared_ptr<std::string> /*Data*/, boost::system::error_code error)
+        void AsyncTCPXMLClient::HandleWrite(std::shared_ptr<std::string> Data,
+                                            const boost::system::error_code &error)
         {
             if(error)
             {
@@ -193,10 +228,19 @@ else std::cout
                 ErrorCallback();
                 return;
             }
+
+            DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
         }
 
         bool AsyncTCPXMLClient::ConnectTLSSocket()
         {
+            tcp_socket.cancel();
+
+            tcp_socket.set_option(tcp::no_delay(true));
+
+            ReadDataBuffer = ReadDataBufferSSL;
+            ReadDataStream = &ReadDataStreamSSL;
+
             SSLConnection = true;
             boost::system::error_code error;
 

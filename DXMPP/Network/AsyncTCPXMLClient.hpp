@@ -27,14 +27,29 @@ namespace DXMPP
         class AsyncTCPXMLClient
         {
             DebugOutputTreshold DebugTreshold;
+            bool HasUnFetchedXML;
 
+            static const int ReadDataBufferSize = 1024;
+            char ReadDataBufferNonSSL[ReadDataBufferSize];
+            std::stringstream ReadDataStreamNonSSL;
+
+            char ReadDataBufferSSL[ReadDataBufferSize];
+            std::stringstream ReadDataStreamSSL;
+
+            boost::asio::mutable_buffers_1 SSLBuffer;
+            boost::asio::mutable_buffers_1 NonSSLBuffer;
         public:
+
+            std::stringstream *ReadDataStream;
+            char * ReadDataBuffer;
+
             enum class ConnectionState
             {
                 Connected,
                 Disconnected,
                 Error
             };
+
 
             std::string Hostname;
             int Portnumber;
@@ -48,12 +63,9 @@ namespace DXMPP
             boost::asio::ssl::context ssl_context;
             boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> ssl_socket;
 
-            static const int ReadDataBufferSize = 1024;
-            char ReadDataBuffer[ReadDataBufferSize];
-            std::stringstream ReadDataStream;
 
-
-            void HandleWrite(std::shared_ptr<std::string> Data, boost::system::error_code error);
+            void HandleWrite(std::shared_ptr<std::string> Data,
+                             const boost::system::error_code &error);
 
             bool ConnectTLSSocket();
             bool ConnectSocket();
@@ -64,7 +76,9 @@ namespace DXMPP
             void WriteXMLToSocket(pugi::xml_document *Doc);
             void WriteTextToSocket(const std::string &Data);
 
-            void HandleRead(boost::system::error_code error, std::size_t bytes_transferred);
+            void HandleRead(char *ActiveDataBuffer,
+                            const boost::system::error_code &error,
+                            std::size_t bytes_transferred);
             void AsyncRead();
 
             pugi::xml_document *IncomingDocument;
@@ -104,6 +118,9 @@ namespace DXMPP
                                DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error)
                 :
                   DebugTreshold(DebugTreshold),
+                  HasUnFetchedXML(false),
+                  SSLBuffer( boost::asio::buffer(ReadDataBufferSSL, ReadDataBufferSize) ),
+                  NonSSLBuffer( boost::asio::buffer(ReadDataBufferNonSSL, ReadDataBufferSize) ),
                   io_service(),
                   tcp_socket(io_service),
                   ssl_context(boost::asio::ssl::context::sslv23),
@@ -112,11 +129,18 @@ namespace DXMPP
                   ErrorCallback(ErrorCallback),
                   GotDataCallback(GotDataCallback)
 
-            {
+            {                
+                ReadDataStream = &ReadDataStreamNonSSL;
+                ReadDataBuffer = ReadDataBufferNonSSL;
+
+                memset(ReadDataBufferSSL, 0, ReadDataBufferSize);
+                memset(ReadDataBufferNonSSL, 0, ReadDataBufferSize);
+
                 SSLConnection = false;
-                CurrentConnectionState = ConnectionState::Disconnected;
+                CurrentConnectionState = ConnectionState::Disconnected;                
 
                 ssl_socket.set_verify_mode(boost::asio::ssl::verify_peer);
+                //ssl_socket.set_verify_callback(ssl::rfc2818_verification("host.name"));
                 ssl_socket.set_verify_callback(boost::bind(&AsyncTCPXMLClient::verify_certificate, this, _1, _2));
 
                 this->Hostname = Hostname;
