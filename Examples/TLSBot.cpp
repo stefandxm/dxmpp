@@ -1,5 +1,5 @@
 //
-//  EchoBot.cpp
+//  TLSBot.cpp
 //  DXMPP
 //
 //  Created by Stefan Karlsson on 31/05/14.

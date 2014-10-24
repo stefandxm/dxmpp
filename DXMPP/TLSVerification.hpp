@@ -1,3 +1,11 @@
+//
+//  TLSVerification.hpp
+//  DXMPP
+//
+//  Created by Stefan Karlsson on 31/05/14.
+//  Copyright (c) 2014 Deus ex Machinae. All rights reserved.
+//
+
 #ifndef DXMPP_TLSVerification_hpp
 #define DXMPP_TLSVerification_hpp
 
