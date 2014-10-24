@@ -35,4 +35,4 @@ Makefile
 DXMPP/pugixml/*
 
 #qt creator stuff
-.user
+*.user
