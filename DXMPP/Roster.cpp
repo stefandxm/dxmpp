@@ -1,3 +1,11 @@
+//
+//  Roster.cpp
+//  DXMPP
+//
+//  Created by Stefan Karlsson 2014
+//  Copyright (c) 2014 Deus ex Machinae. All rights reserved.
+//
+
 #include <DXMPP/Roster.hpp>
 #include <boost/lexical_cast.hpp>
 

@@ -2,7 +2,7 @@
 //  SASLMechanism.cpp
 //  DXMPP
 //
-//  Created by Stefan Karlsson on 31/05/14.
+//  Created by Stefan Karlsson 2014
 //  Copyright (c) 2014 Deus ex Machinae. All rights reserved.
 //
 
