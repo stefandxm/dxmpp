@@ -14,8 +14,9 @@ Boost, Crypto++, OpenSSL, Pugi XML.
 
 Contributors in order of appearance
 -----------
-Stefan Karlsson, Stefan Marton, Florent Le Coz
+Stefan Karlsson, Stefan Marton, Florent Le Coz.
 
 Contact
 -----------
 IRC: stefandxm @ freenode
+E-mail: stefan -at- skogome -dot- net 
