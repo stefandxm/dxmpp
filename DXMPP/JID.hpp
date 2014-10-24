@@ -20,25 +20,20 @@ namespace DXMPP {
 
         void LoadJID(const std::string &JID)
         {
-            size_t IndexOfAt = JID.find('@');
             size_t IndexOfSlash = JID.find('/');
-
-            if(IndexOfAt == std::string::npos)
+            if(IndexOfSlash != std::string::npos)
             {
-                Domain = JID;
-                return;
+                Resource = JID.substr(IndexOfSlash+1);
             }
-
-            Username = JID.substr(0, IndexOfAt);
-
-            if(IndexOfSlash == std::string::npos)
+            size_t IndexOfAt = JID.find('@');
+            if(IndexOfAt != std::string::npos && IndexOfAt < IndexOfSlash)
             {
-                Domain = JID.substr(IndexOfAt+1, JID.length()-IndexOfAt-1);
-                return;
+                Username = JID.substr(0, IndexOfAt);
+                IndexOfAt++;
             }
-            Domain = JID.substr(IndexOfAt+1, IndexOfSlash-IndexOfAt-1);
-            Resource = JID.substr(IndexOfSlash+1, JID.length()-IndexOfSlash-1);
-
+            else
+                IndexOfAt = 0;
+            Domain = JID.substr(IndexOfAt, IndexOfSlash-IndexOfAt);
         }
         
     public:
@@ -77,16 +72,20 @@ namespace DXMPP {
 
         const std::string GetFullJID() const 
         {
-            std::string rVal = Username + "@" + Domain + "/" + Resource;
-            
-            return rVal;
+            if (Resource.empty() && Username.empty())
+                return Domain;
+            if (Resource.empty())
+                return Username + "@" + Domain;
+            if (Username.empty())
+                return Domain + "/" + Resource;
+            return Username + "@" + Domain + "/" + Resource;
         }
         
         const std::string GetBareJID() const 
         {
-            std::string rVal = Username + "@" + Domain;
-            
-            return rVal;
+            if (Username.empty())
+                return Domain;
+            return Username + "@" + Domain;
         }
         
         const std::string GetUsername() const 
