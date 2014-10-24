@@ -21,8 +21,18 @@
 *.la
 *.a
 *.lib
+*.so
+
+# Compiled Makefiles from CMake
+Makefile
 
 # Executables
 *.exe
 *.out
 *.app
+
+# Pugi XML
+DXMPP/pugixml/*
+
+#qt creator stuff
+.user
