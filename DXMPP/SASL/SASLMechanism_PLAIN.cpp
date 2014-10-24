@@ -54,7 +54,7 @@ namespace DXMPP
             void SASL_Mechanism_PLAIN::Begin()
             {
                 std::string authid = MyJID.GetUsername();
-                std::string authzid = "";;
+                std::string authzid = "";
     
                 byte tempbuff[1024];
                 int offset= 0;
@@ -71,10 +71,9 @@ namespace DXMPP
                 
                 string EncodedResponse;
                 CryptoPP::ArraySource ss(tempbuff, offset, true,
-                                            new CryptoPP::Base64Encoder(new CryptoPP::StringSink(EncodedResponse)));
+                                            new CryptoPP::Base64Encoder(new CryptoPP::StringSink(EncodedResponse),
+                                                                        false));
                 
-    
-                // Todo:: Encoded Response has a \n WHY?! it b0rkes ejabberd!!
                 
                 stringstream AuthXML;
                 AuthXML << "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>";// << std::endl;
@@ -88,20 +87,6 @@ namespace DXMPP
             
             void SASL_Mechanism_PLAIN::Challenge(const pugi::xpath_node &challenge)
             {
-                string ChallengeBase64 = challenge.node().child_value();
-                string DecodedChallenge = DecodeBase64(ChallengeBase64);
-                
-                //std::cout << "GOT CHALLENGE " << ChallengeBase64 << " decoded as " <<  DecodedChallenge << std::endl;
-    
-                std::map<std::string,std::string> ChallengeMap; // its like a map to teh challengeh
-                            
-                
-                if(!ParseSASLChallenge(DecodedChallenge, ChallengeMap))
-                {
-                    std::cerr << "Failed to parse SASL Challenge." << std::endl;
-                    return; // undefined behaviour
-                }
-               
             }
         }
     }
