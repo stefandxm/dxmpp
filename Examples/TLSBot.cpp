@@ -14,6 +14,7 @@ using namespace DXMPP;
 using namespace pugi;
 
 class TLSBot :
+        public IEventHandler,
         public StanzaCallback,
         public ConnectionCallback
 {
@@ -104,9 +105,8 @@ int main(int, const char **)
                                                   5222 /* Port number */,
                                                   DXMPP::JID( "dxmpp@users" ) /* Requested JID */,
                                                   string("dxmpp") /* Password */,
-                                                  &Handler /* Connection callback handler */,
-                                                  &Handler /* Stanza callback handler */,
-                                                  nullptr,nullptr,nullptr,nullptr,&Verifier);
+                                                  &Handler,
+                                                  &Verifier);
 
     cout << "Entering fg loop." <<endl;
     while(!Handler.Quit)

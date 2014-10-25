@@ -16,6 +16,7 @@
 #include "Stanza.hpp"
 #include <memory>
 
+
 namespace  DXMPP
 {
     class Connection;

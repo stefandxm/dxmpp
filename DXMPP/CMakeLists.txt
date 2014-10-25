@@ -19,6 +19,7 @@ add_library(dxmpp
 	Stanza.hpp
 	StanzaCallback.hpp
 	ConnectionCallback.hpp
+    IEventHandler.hpp
     Debug/DebugOutputTreshold.hpp
 
 

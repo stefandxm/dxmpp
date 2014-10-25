@@ -18,12 +18,14 @@
 #include <DXMPP/Network/AsyncTCPXMLClient.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
 #include <DXMPP/Roster.hpp>
+#include <DXMPP/IEventHandler.hpp>
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/any.hpp>
 
 #include <sstream>
 
@@ -142,26 +144,17 @@ namespace DXMPP
                                        int Portnumber,
                                        const JID &RequestedJID,
                                        const std::string &Password,
-                                       ConnectionCallback *ConnectionHandler = nullptr,
-                                       StanzaCallback *StanzaHandler = nullptr,
-                                       PresenceCallback *PresenceHandler = nullptr,
-                                       SubscribeCallback *SubscribeHandler = nullptr,
-                                       SubscribedCallback *SubscribedHandler = nullptr,
-                                       UnsubscribedCallback *UnsubscribedHandler = nullptr,
-                                       TLSVerification *Verification = nullptr,
+                                       IEventHandler* Handler,
+                                       TLSVerification *Verification ,
                                        DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
+
 
         static SharedConnection Create(const std::string &Hostname,
                                        int Portnumber,
                                        const JID &RequestedJID,
                                        const std::string &Password,
+                                       IEventHandler* Handler,
                                        TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
-                                       ConnectionCallback *ConnectionHandler = nullptr,
-                                       StanzaCallback *StanzaHandler = nullptr,
-                                       PresenceCallback *PresenceHandler = nullptr,
-                                       SubscribeCallback *SubscribeHandler = nullptr,
-                                       SubscribedCallback *SubscribedHandler = nullptr,
-                                       UnsubscribedCallback *UnsubscribedHandler = nullptr,
                                        DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
 
         ~Connection();

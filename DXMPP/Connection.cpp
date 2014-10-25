@@ -487,21 +487,75 @@ else std::cout
         DebugOut(DebugOutputTreshold::Debug) << "~Connection"  << std::endl;
     }
 
+//    template<typename T>
+//    T *GetHandlerFromAny(void *AnyHandler)
+//    {
+//        return dynamic_cast<T*>(AnyHandler);
+////        T *RVal = nullptr;
+////        try
+////        {
+////            RVal = boost::any_cast<T*>(AnyHandler);
+////        }
+////        catch(...)
+////        {
+////        }
+
+////        return RVal;
+//    }
+
+
+    SharedConnection Connection::Create( const std::string &Hostname,
+                                         int Portnumber,
+                                         const JID &RequestedJID,
+                                         const std::string &Password,
+                                         IEventHandler* Handler,
+                                         TLSVerification *Verification,
+                                         DebugOutputTreshold DebugTreshold)
+    {
+        ConnectionCallback *ConnectionHandler = dynamic_cast<ConnectionCallback*>  (Handler);
+        StanzaCallback *StanzaHandler = dynamic_cast<StanzaCallback*> (Handler);
+        PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
+        SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
+        SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
+        UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
+
+
+        return boost::shared_ptr<Connection>(
+                    new Connection(Hostname,
+                                   Portnumber,
+                                   RequestedJID,
+                                   Password,
+                                   ConnectionHandler,
+                                   StanzaHandler,
+                                   PresenceHandler,
+                                   SubscribeHandler,
+                                   SubscribedHandler,
+                                   UnsubscribedHandler,
+                                   Verification,
+                                   Verification->Mode,
+                                   DebugTreshold) );
+    }
 
 
     SharedConnection Connection::Create(const std::string &Hostname,
-                                    int Portnumber,
-                                    const JID &RequestedJID,
-                                    const std::string &Password,
-                                    TLSVerificationMode VerificationMode,
-                                    ConnectionCallback *ConnectionHandler,
-                                    StanzaCallback *StanzaHandler,
-                                    PresenceCallback *PresenceHandler,
-                                    SubscribeCallback *SubscribeHandler,
-                                    SubscribedCallback *SubscribedHandler,
-                                    UnsubscribedCallback *UnsubscribedHandler,
-                                    DebugOutputTreshold DebugTreshold)
+                                        int Portnumber,
+                                        const JID &RequestedJID,
+                                        const std::string &Password,
+                                        IEventHandler* Handler,
+                                        TLSVerificationMode VerificationMode,
+                                        DebugOutputTreshold DebugTreshold)
     {
+        ConnectionCallback *ConnectionHandler = dynamic_cast<ConnectionCallback*>  (Handler);
+        StanzaCallback *StanzaHandler = dynamic_cast<StanzaCallback*> (Handler);
+        PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
+        SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
+        SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
+        UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
+
+        if( ConnectionHandler == nullptr)
+            std::cerr << "ConnectionHandler is null" << std::endl;
+
+
         return boost::shared_ptr<Connection>(
                     new Connection(Hostname,
                                    Portnumber,
@@ -515,42 +569,8 @@ else std::cout
                                    UnsubscribedHandler,
                                    nullptr,
                                    VerificationMode,
-                                   DebugTreshold)
-                );
+                                   DebugTreshold) );
     }
-
-
-    SharedConnection Connection::Create(const std::string &Hostname,
-                                    int Portnumber,
-                                    const JID &RequestedJID,
-                                    const std::string &Password,
-                                    ConnectionCallback *ConnectionHandler,
-                                    StanzaCallback *StanzaHandler,
-                                    PresenceCallback *PresenceHandler,
-                                    SubscribeCallback *SubscribeHandler,
-                                    SubscribedCallback *SubscribedHandler,
-                                    UnsubscribedCallback *UnsubscribedHandler,
-                                    TLSVerification *Verification,
-                                    DebugOutputTreshold DebugTreshold)
-    {
-        return boost::shared_ptr<Connection>(
-                    new Connection(Hostname,
-                                   Portnumber,
-                                   RequestedJID,
-                                   Password,
-                                   ConnectionHandler,
-                                   StanzaHandler,
-                                   PresenceHandler,
-                                   SubscribeHandler,
-                                   SubscribedHandler,
-                                   UnsubscribedHandler,
-                                   Verification,
-                                   (Verification!=nullptr?Verification->Mode:TLSVerificationMode::RFC2818_Hostname),
-                                   DebugTreshold)
-                );
-    }
-
-
 
     void Connection::ClientDisconnected()
     {

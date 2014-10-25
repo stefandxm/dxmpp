@@ -14,6 +14,7 @@ using namespace DXMPP;
 using namespace pugi;
 
 class RosterBot :
+        public IEventHandler,
         public StanzaCallback,
         public ConnectionCallback,
         public PresenceCallback,
@@ -119,13 +120,9 @@ int main(int, const char **)
                                                   5222 /* Port number */,
                                                   DXMPP::JID( "dxmpp@users" ) /* Requested JID */,
                                                   string("dxmpp") /* Password */,
-                                                  TLSVerificationMode::None,
-                                                  &Handler /* Connection callback handler */,
-                                                  &Handler /* Stanza callback handler */,
-                                                  &Handler /* Presence callback handler */,
-                                                  &Handler /* Subscribe callback handler */,
-                                                  &Handler /* Subscribed callback handler */,
-                                                  &Handler /* Unsubscribed callback handler */);
+                                                  &Handler,
+                                                  TLSVerificationMode::None
+                                                  );
 
     cout << "Entering fg loop." << endl;
     while(!Handler.Quit)
