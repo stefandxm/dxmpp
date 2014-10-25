@@ -73,8 +73,7 @@ namespace DXMPP
                 boost::algorithm::to_lower(TOutput);
                 return TOutput;
             }   
-            
-    
+
             string SASL_Mechanism_DigestMD5::GetHA1(string X, string nonce, string cnonce)
             {
                 CryptoPP::Weak::MD5 hash;
@@ -105,7 +104,8 @@ namespace DXMPP
                 
                 boost::algorithm::to_lower(TOutput);
                 return TOutput;
-            }        
+            }
+
             void SASL_Mechanism_DigestMD5::Challenge(const pugi::xpath_node &challenge)
             {
                 string ChallengeBase64 = challenge.node().child_value();

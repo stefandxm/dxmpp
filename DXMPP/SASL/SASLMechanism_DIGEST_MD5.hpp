@@ -27,7 +27,8 @@ namespace DXMPP
                 SASL_Mechanism_DigestMD5(DXMPP::Network::AsyncTCPXMLClient *Uplink,
                     const JID &MyJID,
                     const std::string &Password)
-                    :SASLMechanism(Uplink, MyJID, Password)
+                    :
+                      SASLMechanism(Uplink, MyJID, Password)
                 {
                 }
 

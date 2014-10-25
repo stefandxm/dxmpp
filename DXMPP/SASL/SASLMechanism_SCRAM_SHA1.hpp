@@ -30,7 +30,8 @@ namespace DXMPP
             SASL_Mechanism_SCRAM_SHA1(DXMPP::Network::AsyncTCPXMLClient *Uplink,
                 const JID &MyJID, 
                 const std::string &Password)        
-                :SASLMechanism(Uplink, MyJID, Password)
+                :
+                  SASLMechanism(Uplink, MyJID, Password)
             {   
             }            
             

@@ -44,7 +44,8 @@ namespace DXMPP
             SASLMechanism(DXMPP::Network::AsyncTCPXMLClient *Uplink,
                 const JID &MyJID, 
                 const std::string &Password)        
-                :MyJID(MyJID), Password(Password), Uplink (Uplink)
+                :
+                  MyJID(MyJID), Password(Password), Uplink (Uplink)
             {   
             }
             std::string SelectedNounce;
