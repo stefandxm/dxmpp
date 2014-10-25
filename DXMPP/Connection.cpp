@@ -395,7 +395,7 @@ else std::cout
         Stanza->Message.attribute("from").set_value( MyJID.GetFullJID().c_str() );
         Stanza->Message.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
 
-        Client.WriteXMLToSocket(Stanza->Document);
+        Client.WriteXMLToSocket(Stanza->Document.get());
     }   
 
     void Connection::CheckStreamForValidXML()

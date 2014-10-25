@@ -9,6 +9,7 @@
 
 #include <DXMPP/Network/AsyncTCPXMLClient.hpp>
 #include <boost/lexical_cast.hpp>
+#include <memory>
 
 namespace DXMPP
 {
@@ -24,13 +25,14 @@ else std::cout
         using namespace pugi;
 
 
-        pugi::xml_document *AsyncTCPXMLClient::FetchDocument()
+        std::unique_ptr<pugi::xml_document> AsyncTCPXMLClient::FetchDocument()
         {
             pugi::xml_document *RVal = IncomingDocument;
-            HasUnFetchedXML = false;
 
+            HasUnFetchedXML = false;
             IncomingDocument = nullptr;
-            return  RVal;
+
+            return  std::unique_ptr<pugi::xml_document> (RVal);
         }
 
         void AsyncTCPXMLClient::ClearReadDataStream()
@@ -72,7 +74,7 @@ else std::cout
                 GotDataCallback();
 
                 if(HasUnFetchedXML)
-                    delete FetchDocument();
+                    FetchDocument().release();
             }
             AsyncRead();
         }

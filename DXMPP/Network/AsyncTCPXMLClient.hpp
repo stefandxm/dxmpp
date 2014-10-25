@@ -91,7 +91,7 @@ namespace DXMPP
             pugi::xml_node SelectSingleXMLNode(const char* xpath);
             pugi::xpath_node_set SelectXMLNodes(const char* xpath);
 
-            pugi::xml_document *FetchDocument();
+            std::unique_ptr<pugi::xml_document>  FetchDocument();
 
             void ClearReadDataStream();
 
