@@ -109,7 +109,8 @@ namespace DXMPP
             int digestlength =SHAVersion::DIGESTSIZE;
 
             // Calculate Result
-            CryptoPP::HMAC< SHAVersion > hmacFromPassword((byte*)Password.c_str(), Password.length());
+            CryptoPP::HMAC< SHAVersion > hmacFromPassword((byte*)Password.c_str(),
+                                                          Password.length());
             hmacFromPassword.CalculateDigest( Result, SaltBytes, SaltLength);
 
             memcpy(Previous, Result, digestlength);
@@ -125,7 +126,9 @@ namespace DXMPP
 
             // Result is now salted password
             CryptoPP::HMAC< SHAVersion > hmacFromSaltedPassword(Result, digestlength);
-            hmacFromSaltedPassword.CalculateDigest( ClientKey, (byte*)"Client Key", strlen("Client Key"));
+            hmacFromSaltedPassword.CalculateDigest( ClientKey,
+                                                    (byte*)"Client Key",
+                                                    strlen("Client Key"));
 
             SHAVersion hash;
             hash.CalculateDigest( StoredKey, ClientKey, digestlength);
@@ -139,7 +142,9 @@ namespace DXMPP
             string AuthMessage = TStream.str();
 
             CryptoPP::HMAC< SHAVersion > hmacFromStoredKey(StoredKey, digestlength);
-            hmacFromStoredKey.CalculateDigest( ClientSignature, (byte*)AuthMessage.c_str(), AuthMessage.length());
+            hmacFromStoredKey.CalculateDigest( ClientSignature,
+                                               (byte*)AuthMessage.c_str(),
+                                               AuthMessage.length());
 
             for(int i = 0; i < digestlength; i++)
             {
@@ -147,19 +152,25 @@ namespace DXMPP
             }
 
             // Prepare an HMAC SHA-1 digester using the salted password bytes as the key.
-            hmacFromSaltedPassword.CalculateDigest( ServerKey, (byte*)"Server Key", strlen("Server Key"));
+            hmacFromSaltedPassword.CalculateDigest( ServerKey,
+                                                    (byte*)"Server Key",
+                                                    strlen("Server Key"));
 
             CryptoPP::HMAC< SHAVersion > hmacFromServerKey(ServerKey, digestlength);
-            hmacFromServerKey.CalculateDigest( ServerSignature, (byte*)AuthMessage.c_str(), AuthMessage.length());
+            hmacFromServerKey.CalculateDigest( ServerSignature,
+                                               (byte*)AuthMessage.c_str(),
+                                               AuthMessage.length());
             CryptoPP::ArraySource(ServerSignature, digestlength, true,
-                                        new CryptoPP::Base64Encoder(new CryptoPP::StringSink(ServerProof), false));
+                                        new CryptoPP::Base64Encoder(
+                                            new CryptoPP::StringSink(ServerProof), false));
 
 
             // nu har vi räknat ut alla jävla saker vi egentligen behöver..
             TStream.str("");
             // convert something into p.. i guess client proof to base 64?
             CryptoPP::ArraySource(ClientProof, digestlength, true,
-                                        new CryptoPP::Base64Encoder(new CryptoPP::StringSink(p), false));
+                                        new CryptoPP::Base64Encoder(
+                                            new CryptoPP::StringSink(p), false));
 
             TStream << "c=" << c << ",r=" << r << ",p=" << p;
             string Response = TStream.str();
@@ -167,9 +178,9 @@ namespace DXMPP
             string Base64EncodedResponse = EncodeBase64(Response);
 
             TStream.str("");
-            TStream << "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>";
-            TStream << Base64EncodedResponse;
-            TStream << "</response>";
+            TStream << "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>"
+                    << Base64EncodedResponse
+                    << "</response>";
             string ResponseXML = TStream.str();
             Uplink->WriteTextToSocket(ResponseXML);
         }
@@ -179,8 +190,6 @@ namespace DXMPP
             std::string SuccessVal = SuccessTag.node().text().as_string();
             string DecodedSuccess= DecodeBase64(SuccessVal);
             string ServerProofValidResponse = string("v=") + ServerProof;
-            //std::cout << "DecodedSuccess = \"" << DecodedSuccess << "\"" <<std::endl;
-            //std::cout << "ServerProof = \"" << ServerProofValidResponse << "\"" << std::endl;
             return DecodedSuccess == ServerProofValidResponse;
         }
     }

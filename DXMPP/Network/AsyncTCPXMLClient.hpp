@@ -149,11 +149,16 @@ namespace DXMPP
                 switch(TLSConfig->Mode)
                 {
                 case TLSVerificationMode::RFC2818_Hostname:
-                    ssl_socket.set_verify_callback(boost::asio::ssl::rfc2818_verification("host.name"));
+                    ssl_socket.set_verify_callback(
+                        boost::asio::ssl::rfc2818_verification("host.name"));
                     break;
                 case TLSVerificationMode::Custom:
                 case TLSVerificationMode::None:
-                    ssl_socket.set_verify_callback(boost::bind(&AsyncTCPXMLClient::VerifyCertificate, this, _1, _2));
+                    ssl_socket.set_verify_callback(
+                        boost::bind(&AsyncTCPXMLClient::VerifyCertificate,
+                                    this,
+                                    _1,
+                                    _2));
                     break;
                 }
 

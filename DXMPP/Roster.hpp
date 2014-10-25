@@ -18,7 +18,11 @@ namespace  DXMPP
     class PresenceCallback
     {
     public:
-        virtual void OnPresence(JID From, bool Available, int Priority, std::string Status, std::string Message) = 0;
+        virtual void OnPresence(JID From,
+                                bool Available,
+                                int Priority,
+                                std::string Status,
+                                std::string Message) = 0;
     };
 
     class SubscribeCallback

@@ -104,7 +104,10 @@ namespace DXMPP
         pugi::xml_node StatusTag = Node.child("status");
         std::string Status = StatusTag.text().as_string();
 
-        PresenceHandler->OnPresence(From, Type != "unavailable", Priority, Status, Show);
+        PresenceHandler->OnPresence(From, Type != "unavailable",
+                                    Priority,
+                                    Status,
+                                    Show);
     }
 
     void RosterMaintaner::Subscribe(JID To)

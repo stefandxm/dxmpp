@@ -43,7 +43,10 @@ else std::cout
         void AsyncTCPXMLClient::ForkIO()
         {
             if(IOThread == nullptr)
-                IOThread.reset(new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service)));
+                IOThread.reset(
+                            new boost::thread(boost::bind(
+                                                  &boost::asio::io_service::run,
+                                                  &io_service)));
         }
 
         void AsyncTCPXMLClient::HandleRead(
@@ -61,7 +64,8 @@ else std::cout
             if(error)
             {
                 CurrentConnectionState = ConnectionState::Error;
-                std::cerr << "HandleRead: Got socket error: " << error << " / " << error.message() << std::endl;
+                std::cerr << "HandleRead: Got socket error: " << error
+                          << " / " << error.message() << std::endl;
                 ErrorCallback();
                 return;
             }
@@ -126,7 +130,8 @@ else std::cout
             if( IncomingDocument == NULL)
                 IncomingDocument = new pugi::xml_document();
 
-            xml_parse_result parseresult = IncomingDocument->load(TStream, parse_full&~parse_eol, encoding_auto);
+            xml_parse_result parseresult =
+                    IncomingDocument->load(TStream, parse_full&~parse_eol, encoding_auto);
 
             if(parseresult.status != xml_parse_status::status_ok)
                 return false;
@@ -135,9 +140,11 @@ else std::cout
 
             ClearReadDataStream();
 
-            DebugOut(DebugOutputTreshold::Debug) << std::endl << "++++++++++++++++++++++++++++++" << std::endl;
+            DebugOut(DebugOutputTreshold::Debug) << std::endl
+                << "++++++++++++++++++++++++++++++" << std::endl;
             DebugOut(DebugOutputTreshold::Debug) << jox;
-            DebugOut(DebugOutputTreshold::Debug) << std::endl << "------------------------------" << std::endl;
+            DebugOut(DebugOutputTreshold::Debug) << std::endl
+                << "------------------------------" << std::endl;
             return true;
         }
 
@@ -159,15 +166,22 @@ else std::cout
             if(SSLConnection)
             {
                 boost::asio::async_write(ssl_socket, boost::asio::buffer(*SharedData),
-                                            boost::bind(&AsyncTCPXMLClient::HandleWrite,this, SharedData, boost::asio::placeholders::error));
+                                            boost::bind(&AsyncTCPXMLClient::HandleWrite,
+                                                        this,
+                                                        SharedData,
+                                                        boost::asio::placeholders::error));
             }
             else
             {
                 boost::asio::async_write(tcp_socket, boost::asio::buffer(*SharedData),
-                                            boost::bind(&AsyncTCPXMLClient::HandleWrite,this, SharedData, boost::asio::placeholders::error));
+                                            boost::bind(&AsyncTCPXMLClient::HandleWrite,
+                                                        this,
+                                                        SharedData,
+                                                        boost::asio::placeholders::error));
             }
 
-            DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" << std::endl << Data << std::endl;
+            DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
+                std::endl << Data << std::endl;
 
         }
 
@@ -188,12 +202,14 @@ else std::cout
             if (io_error)
             {
                 CurrentConnectionState = ConnectionState::Error;
-                std::cerr << "Failed to connect with error: " << io_error << " / " << io_error.message() << std::endl;
+                std::cerr << "Failed to connect with error: "
+                          << io_error << " / " << io_error.message() << std::endl;
                 return false;
             }
             else
             {
-                DebugOut(DebugOutputTreshold::Debug) << "Succesfully connected socket" << std::endl;
+                DebugOut(DebugOutputTreshold::Debug)
+                    << "Succesfully connected socket" << std::endl;
             }
 
             CurrentConnectionState = ConnectionState::Connected;
@@ -230,7 +246,8 @@ else std::cout
             if(error)
             {
                 CurrentConnectionState = ConnectionState::Error;
-                std::cerr << "Handlewrite: Got socket error: " << error << " / " << error.message() << std::endl;
+                std::cerr << "Handlewrite: Got socket error: "
+                          << error << " / " << error.message() << std::endl;
                 ErrorCallback();
                 return;
             }
@@ -256,13 +273,15 @@ else std::cout
 
             if (error)
             {
-                std::cerr << "Failed to handshake with error: " << error << " / " << error.message() << std::endl;
+                std::cerr << "Failed to handshake with error: "
+                          << error << " / " << error.message() << std::endl;
                 CurrentConnectionState = ConnectionState::Error;
                 return false;
             }
             else
             {
-                DebugOut(DebugOutputTreshold::Debug) << "Succesfully upgraded to TLS!" << std::endl;
+                DebugOut(DebugOutputTreshold::Debug)
+                    << "Succesfully upgraded to TLS!" << std::endl;
             }
 
             return true;

@@ -57,7 +57,8 @@ else std::cout
         Stream << " xmlns='jabber:client'" << endl;
         Stream << " xmlns:stream='http://etherx.jabber.org/streams'>";
 
-        DebugOut(DebugOutputTreshold::Debug) << "DXMPP: Opening stream" << std::endl;// << Stream.str();
+        DebugOut(DebugOutputTreshold::Debug)
+            << "DXMPP: Opening stream" << std::endl;// << Stream.str();
 
         Client.WriteTextToSocket(Stream.str());
     }
@@ -98,7 +99,8 @@ else std::cout
         pugi::xpath_node starttls = xdoc.select_single_node("//starttls");
         if(starttls)
         {
-            DebugOut(DebugOutputTreshold::Debug)  << std::endl << "START TLS SUPPORTED" << std::endl;
+            DebugOut(DebugOutputTreshold::Debug)
+                << std::endl << "START TLS SUPPORTED" << std::endl;
             FeaturesStartTLS = true;
         }
 
@@ -108,7 +110,8 @@ else std::cout
         {
             xml_node node = it->node();
             string mechanism = string(node.child_value());
-            DebugOut(DebugOutputTreshold::Debug) << "Mechanism supported: " << mechanism << std::endl;
+            DebugOut(DebugOutputTreshold::Debug)
+                << "Mechanism supported: " << mechanism << std::endl;
                 
 
             if(mechanism == "DIGEST-MD5")
@@ -169,11 +172,13 @@ else std::cout
 
     void Connection::InitTLS()
     {
-        DebugOut(DebugOutputTreshold::Debug) << "Server accepted to start TLS handshake" << std::endl;
+        DebugOut(DebugOutputTreshold::Debug)
+            << "Server accepted to start TLS handshake" << std::endl;
         bool Success = Client.ConnectTLSSocket();
         if(Success)
         {
-            DebugOut(DebugOutputTreshold::Debug) << "TLS Connection successfull. Reopening stream." << std::endl;
+            DebugOut(DebugOutputTreshold::Debug)
+                << "TLS Connection successfull. Reopening stream." << std::endl;
             OpenXMPPStream();
         }
         else
@@ -260,7 +265,10 @@ else std::cout
             return;
         }
             
-        DebugOut(DebugOutputTreshold::Debug) << std::endl<< "AUTHENTICATED" << std::endl; // todo: verify xml ;)
+        DebugOut(DebugOutputTreshold::Debug)
+                << std::endl
+                << "AUTHENTICATED"
+                << std::endl; // todo: verify xml ;)
             
         string StartSession = "<iq type='set' id='1'><session xmlns='urn:ietf:params:xml:ns:xmpp-session'/></iq>";
         Client.WriteTextToSocket(StartSession);
@@ -320,7 +328,11 @@ else std::cout
 
                 return;
             }
-            DebugOut(DebugOutputTreshold::Debug) << std::endl<< "Authentication succesfull." << std::endl;
+            DebugOut(DebugOutputTreshold::Debug)
+                    <<
+                       std::endl
+                    << "Authentication succesfull."
+                    << std::endl;
             StartBind();
         }
     }
@@ -356,7 +368,11 @@ else std::cout
             return;
 
         if(StanzaHandler)
-            StanzaHandler->StanzaReceived( SharedStanza(new Stanza(Client.FetchDocument(), message.node())), shared_from_this());
+            StanzaHandler->StanzaReceived(
+                        SharedStanza(
+                            new Stanza(Client.FetchDocument(),
+                                       message.node())),
+                        shared_from_this());
     }
 
     void Connection::CheckForPresence()
@@ -468,7 +484,9 @@ else std::cout
 
     void Connection::Connect()
     {
-        DebugOut(DebugOutputTreshold::Debug) << "Starting io_service run in background thread" << std::endl;
+        DebugOut(DebugOutputTreshold::Debug)
+                << "Starting io_service run in background thread"
+                << std::endl;
 
         PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
         if( !Client.ConnectSocket() )
@@ -486,23 +504,6 @@ else std::cout
     {
         DebugOut(DebugOutputTreshold::Debug) << "~Connection"  << std::endl;
     }
-
-//    template<typename T>
-//    T *GetHandlerFromAny(void *AnyHandler)
-//    {
-//        return dynamic_cast<T*>(AnyHandler);
-////        T *RVal = nullptr;
-////        try
-////        {
-////            RVal = boost::any_cast<T*>(AnyHandler);
-////        }
-////        catch(...)
-////        {
-////        }
-
-////        return RVal;
-//    }
-
 
     SharedConnection Connection::Create( const std::string &Hostname,
                                          int Portnumber,

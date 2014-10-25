@@ -33,7 +33,10 @@ namespace DXMPP
         namespace ascii = boost::spirit::ascii;
 
         template <typename Iterator>
-            struct kvpair_parser : qi::grammar<Iterator, std::map<std::string, std::string>(), ascii::space_type>
+            struct kvpair_parser :
+                    qi::grammar<Iterator,
+                        std::map<std::string,
+                            std::string>(), ascii::space_type>
         {
             kvpair_parser() : kvpair_parser::base_type(start)
             {
@@ -51,12 +54,22 @@ namespace DXMPP
                 start %= pair >> *(qi::lit(',') >> pair);
             }
 
-            qi::rule<Iterator, std::pair<std::string,std::string>(), ascii::space_type> pair;
-            qi::rule<Iterator, std::string(), ascii::space_type> key_string, value_string, quoted_string;
-            qi::rule<Iterator, std::map<std::string, std::string>(), ascii::space_type> start;
+            qi::rule<Iterator,
+                    std::pair<std::string,std::string>(),
+                        ascii::space_type> pair;
+            qi::rule<Iterator,
+                    std::string(),
+                        ascii::space_type> key_string,
+                        value_string,
+                        quoted_string;
+            qi::rule<Iterator,
+                    std::map<std::string,
+                        std::string>(),
+                        ascii::space_type> start;
         };
 
-        extern bool ParseSASLChallenge(const std::string kv_string, std::map<std::string,std::string> & results);
+        extern bool ParseSASLChallenge(const std::string kv_string,
+                                       std::map<std::string,std::string>& results);
     }
 }
 

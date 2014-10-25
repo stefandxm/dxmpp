@@ -64,7 +64,9 @@ namespace DXMPP
                 std::string TOutput;
                 Hexit.Attach( new CryptoPP::StringSink( TOutput ) );
     
-                hash.CalculateDigest( digest, reinterpret_cast<const unsigned char *>( Input.c_str() ), Input.length() );
+                hash.CalculateDigest( digest,
+                                      reinterpret_cast<const unsigned char *>( Input.c_str() ),
+                                      Input.length() );
                 Hexit.Put( digest, length );
                 Hexit.MessageEnd();
                 
@@ -80,7 +82,9 @@ namespace DXMPP
                 int digestlength =CryptoPP::Weak::MD5::DIGESTSIZE;
     
                 // Calculatey Y
-                hash.CalculateDigest( digest, reinterpret_cast<const unsigned char *>( X.c_str() ), X.length() );
+                hash.CalculateDigest( digest,
+                                      reinterpret_cast<const unsigned char *>( X.c_str() ),
+                                      X.length() );
                 // X is now in digest           
     
                 stringstream TStream;
@@ -158,29 +162,42 @@ namespace DXMPP
                 string HA2 = GetMD5Hex(A2);
     
                 TStream.str("");
-                TStream << HA1 << ':' << nonce << ':' << nc << ':'  << cnonce  << ':' << qop << ':' << HA2;
+                TStream << HA1
+                        << ':'
+                        << nonce
+                        << ':'
+                        << nc
+                        << ':'
+                        << cnonce
+                        << ':'
+                        << qop
+                        << ':'
+                        << HA2;
                 string KD = TStream.str();
     
                 string Z = GetMD5Hex(KD);
     
                 TStream.str("");
                 
-                TStream << "username=\"" << MyJID.GetUsername() << "\""
+                TStream << "username=\""
+                        << MyJID.GetUsername() << "\""
                 //<< ",realm=\"" << realm << "\""
-                << ",nonce=\"" << nonce << "\""
-                << ",cnonce=\"" << cnonce << "\""
-                << ",nc=" << nc
-                << ",qop=auth,digest-uri=\"xmpp/" << MyJID.GetDomain()<< "\""
-                << ",response=" << Z
-                << ",charset=utf-8";//,authzid=\"" << MyJID.GetFullJID() << "\"";
+                        << ",nonce=\"" << nonce << "\""
+                        << ",cnonce=\"" << cnonce << "\""
+                        << ",nc=" << nc
+                        << ",qop=auth,digest-uri=\"xmpp/"
+                        << MyJID.GetDomain()<< "\""
+                        << ",response="
+                        << Z
+                        << ",charset=utf-8";//,authzid=\"" << MyJID.GetFullJID() << "\"";
                 
                 string Response = TStream.str();
                 Response = EncodeBase64(Response);
     
                 TStream.str("");
                 TStream << "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>"
-                << Response
-                << "</response>";
+                        << Response
+                        << "</response>";
                 
                 string ResponseXML = TStream.str();
                 
