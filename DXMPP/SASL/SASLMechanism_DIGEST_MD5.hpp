@@ -15,26 +15,26 @@ namespace DXMPP
 {
     namespace SASL
     {
-    namespace Weak
-    {
-        class SASL_Mechanism_DigestMD5 : public SASLMechanism
+        namespace Weak
         {
-            std::string GetMD5Hex(std::string Input);           
-            std::string GetHA1(std::string X, std::string nonce, std::string cnonce);
-        public:
-            void Begin();
-            
-            SASL_Mechanism_DigestMD5(DXMPP::Network::AsyncTCPXMLClient *Uplink,
-                const JID &MyJID, 
-                const std::string &Password)        
-                :SASLMechanism(Uplink, MyJID, Password)
-            {   
-            }            
-            
-            void Challenge(const pugi::xpath_node &challenge);
-            bool Verify(const pugi::xpath_node &SuccessTag);
-        };
-    }
+            class SASL_Mechanism_DigestMD5 : public SASLMechanism
+            {
+                std::string GetMD5Hex(std::string Input);
+                std::string GetHA1(std::string X, std::string nonce, std::string cnonce);
+            public:
+                void Begin();
+
+                SASL_Mechanism_DigestMD5(DXMPP::Network::AsyncTCPXMLClient *Uplink,
+                    const JID &MyJID,
+                    const std::string &Password)
+                    :SASLMechanism(Uplink, MyJID, Password)
+                {
+                }
+
+                void Challenge(const pugi::xpath_node &challenge);
+                bool Verify(const pugi::xpath_node &SuccessTag);
+            };
+        }
     }
 }
 
