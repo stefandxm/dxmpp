@@ -1,3 +1,5 @@
+![DXMPP Logo](http://deusexmachinae.se/dxmpp/dxmpp.png)
+
 DXMPP - Deus ex Machinae XMPP framework
 =====
 
