@@ -78,8 +78,8 @@ class CustomTLSVerification
         : public TLSVerification
 {
 public:
-    virtual bool VerifyCertificate(bool /*Preverified*/,
-                                   boost::asio::ssl::verify_context& /*ctx*/)
+    bool VerifyCertificate(bool /*Preverified*/,
+                           boost::asio::ssl::verify_context& /*ctx*/)
     {
         cout << "I should seriously verify this, but for now i will just reject" << endl;
         return false;
