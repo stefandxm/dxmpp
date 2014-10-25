@@ -20,3 +20,6 @@ Contact
 -----------
 IRC: stefandxm @ freenode.
 E-mail: stefan -at- skogome -dot- net 
+
+[DXMPP Official webpage](http://deusexmachinae.se/dxmpp).
+
