@@ -88,6 +88,7 @@ int main(int, const char **)
                                                   TLSVerificationMode::None);
 
     cout << "Entering fg loop." << endl;
+
     while(!Handler.Quit)
     {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));
