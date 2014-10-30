@@ -9,7 +9,7 @@
 #ifndef DXMPP_AsyncTCPClient_hpp
 #define DXMPP_AsyncTCPClient_hpp
 
-#include <DXMPP/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
 #include <DXMPP/TLSVerification.hpp>
 

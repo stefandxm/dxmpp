@@ -9,7 +9,7 @@
 #ifndef DXMPP_Roster_hpp
 #define DXMPP_Roster_hpp
 
-#include <DXMPP/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 #include <DXMPP/Network/AsyncTCPXMLClient.hpp>
 #include <DXMPP/JID.hpp>
 

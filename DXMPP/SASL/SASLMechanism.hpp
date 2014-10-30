@@ -9,7 +9,7 @@
 #ifndef DXMPP_SASL_hpp
 #define DXMPP_SASL_hpp
 
-#include <DXMPP/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
 #include <DXMPP/SASL/SaslChallengeParser.hpp>
 #include <DXMPP/Network/AsyncTCPXMLClient.hpp>

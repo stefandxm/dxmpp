@@ -7,7 +7,7 @@
 //
 
 #include <DXMPP/SASL/SASLMechanism_SCRAM_SHA1.hpp>
-#include <DXMPP/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
 
 #include <boost/function.hpp>

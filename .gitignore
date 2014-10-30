@@ -32,7 +32,7 @@ Makefile
 *.app
 
 # Pugi XML
-DXMPP/pugixml/*
+#pugixml/*
 
 #qt creator stuff
 *.user

@@ -9,7 +9,7 @@
 #ifndef DXMPP_Connection_hpp
 #define DXMPP_Connection_hpp
 
-#include <DXMPP/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
 #include <DXMPP/SASL/SASLMechanism.hpp>
 #include <DXMPP/Stanza.hpp>

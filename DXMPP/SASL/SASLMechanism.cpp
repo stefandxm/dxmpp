@@ -8,7 +8,7 @@
 
 
 #include <DXMPP/SASL/SASLMechanism.hpp>
-#include <DXMPP/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
 
 #include <boost/function.hpp>

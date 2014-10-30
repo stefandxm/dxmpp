@@ -22,14 +22,8 @@ add_library(dxmpp
     IEventHandler.hpp
     Debug/DebugOutputTreshold.hpp
 
-
-# Please note this has to be downloaded and added externally to DXMPP
-# PUGIXML is available in MIT license
-# from http://pugixml.org and only requires an unpack into
-# pugixml folder.
-	pugixml/pugixml.cpp
 )
 
 target_link_libraries (dxmpp
-	boost_thread boost_system crypto ssl cryptopp pthread
+	pugixml boost_thread boost_system crypto ssl cryptopp pthread
 )
