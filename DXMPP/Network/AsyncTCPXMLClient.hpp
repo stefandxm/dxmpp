@@ -9,6 +9,20 @@
 #ifndef DXMPP_AsyncTCPClient_hpp
 #define DXMPP_AsyncTCPClient_hpp
 
+#ifdef __APPLE__
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
+#elif defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostics push
+#pragma GCC diagnostics ignored "-Wdeprecated-declarations"
+#endif // __clang__
+
+
+#endif
+
 #include <pugixml/pugixml.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
 #include <DXMPP/TLSVerification.hpp>
@@ -168,5 +182,18 @@ namespace DXMPP
         };
     }
 }
+
+#ifdef __APPLE__
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+
+#elif defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic pop
+#endif // __clang__
+
+
+#endif
+
 
 #endif // DXMPP_AsyncTCPClient_hpp
