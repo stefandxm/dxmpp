@@ -185,6 +185,65 @@ else std::cout
 
         }
 
+        bool AsyncTCPXMLClient::EnsureTCPKeepAlive()
+        {
+            // http://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/
+            int optval;
+            socklen_t optlen = sizeof(optval);
+            if(getsockopt(tcp_socket.lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0)
+            {
+                std::cerr << "Unable to getsockopt for keepalive" << std::endl;
+                return false;
+            }
+            if(optval == 1)
+                return true;
+
+            /* Set the option active */
+            optval = 1;
+            optlen = sizeof(optval);
+            if(setsockopt(tcp_socket.lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+                std::cerr << "Unable to setsockopt for keepalive" << std::endl;
+                return false;
+            }
+            /* Check the status again */
+            if(getsockopt(tcp_socket.lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0) {
+                std::cerr << "Unable to very getsockopt for keepalive" << std::endl;
+                return false;
+            }
+
+            DebugOut(DebugOutputTreshold::Debug)
+                << "Set TCP Keep alive on native socket" << std::endl;
+
+            return true;
+        }
+
+        void AsyncTCPXMLClient::SendKeepAliveWhitespace()
+        {
+            WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
+
+            SendKeepAliveWhitespaceTimer->expires_from_now (
+                        boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
+            SendKeepAliveWhitespaceTimer->async_wait(
+                        boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
+                                    this)
+                        );
+        }
+
+        void AsyncTCPXMLClient::SetKeepAliveByWhiteSpace(const std::string &DataToSend,
+                                                         int TimeoutSeconds)
+        {
+            SendKeepAliveWhiteSpaceDataToSend = DataToSend;
+            SendKeepAliveWhiteSpaceTimeeoutSeconds = TimeoutSeconds;
+
+            SendKeepAliveWhitespaceTimer.reset (
+                        new boost::asio::deadline_timer (
+                            this->io_service, boost::posix_time::seconds(
+                                SendKeepAliveWhiteSpaceTimeeoutSeconds) )
+                        );
+
+            SendKeepAliveWhitespace();
+        }
+
         bool AsyncTCPXMLClient::ConnectSocket()
         {
             ReadDataBuffer = ReadDataBufferNonSSL;
@@ -211,6 +270,8 @@ else std::cout
                 DebugOut(DebugOutputTreshold::Debug)
                     << "Succesfully connected socket" << std::endl;
             }
+
+            AsyncTCPXMLClient::EnsureTCPKeepAlive();
 
             CurrentConnectionState = ConnectionState::Connected;
             return true;

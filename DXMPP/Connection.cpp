@@ -246,6 +246,7 @@ else std::cout
 
         Client.WriteTextToSocket(Presence);
         CurrentConnectionState = ConnectionState::Connected;
+        Client.SetKeepAliveByWhiteSpace(string(" "), 30);
         DebugOut(DebugOutputTreshold::Debug) << std::endl << "ONLINE" << std::endl;
     }
 

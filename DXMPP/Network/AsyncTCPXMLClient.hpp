@@ -32,7 +32,7 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
-
+#include <memory>
 #include <sstream>
 
 namespace DXMPP
@@ -55,6 +55,11 @@ namespace DXMPP
 
             boost::asio::mutable_buffers_1 SSLBuffer;
             boost::asio::mutable_buffers_1 NonSSLBuffer;
+            void SendKeepAliveWhitespace();
+            std::unique_ptr<boost::asio::deadline_timer>  SendKeepAliveWhitespaceTimer;
+            std::string SendKeepAliveWhiteSpaceDataToSend;
+            int SendKeepAliveWhiteSpaceTimeeoutSeconds;
+
         public:
 
             std::stringstream *ReadDataStream;
@@ -85,6 +90,10 @@ namespace DXMPP
             void HandleWrite(std::shared_ptr<std::string> Data,
                              const boost::system::error_code &error);
 
+
+            void SetKeepAliveByWhiteSpace(const std::string &DataToSend,
+                                          int TimeoutSeconds = 30);
+            bool EnsureTCPKeepAlive();
             bool ConnectTLSSocket();
             bool ConnectSocket();
 
