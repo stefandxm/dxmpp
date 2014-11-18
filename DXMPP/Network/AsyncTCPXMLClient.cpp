@@ -63,6 +63,7 @@ else std::cout
 
             if(error)
             {
+                SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
                 std::cerr << "HandleRead: Got socket error: " << error
                           << " / " << error.message() << std::endl;
@@ -221,12 +222,15 @@ else std::cout
         {
             WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
 
-            SendKeepAliveWhitespaceTimer->expires_from_now (
-                        boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
-            SendKeepAliveWhitespaceTimer->async_wait(
-                        boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
-                                    this)
-                        );
+            if( SendKeepAliveWhitespaceTimer != nullptr )
+            {
+                SendKeepAliveWhitespaceTimer->expires_from_now (
+                            boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
+                SendKeepAliveWhitespaceTimer->async_wait(
+                            boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
+                                        this)
+                            );
+            }
         }
 
         void AsyncTCPXMLClient::SetKeepAliveByWhiteSpace(const std::string &DataToSend,
@@ -306,6 +310,7 @@ else std::cout
         {
             if(error)
             {
+                SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
                 std::cerr << "Handlewrite: Got socket error: "
                           << error << " / " << error.message() << std::endl;
