@@ -121,14 +121,15 @@ namespace DXMPP
             void ForkIO();
 
 
-            virtual ~AsyncTCPXMLClient()
+            ~AsyncTCPXMLClient()
             {
                 io_service.stop();
                 while(!io_service.stopped())
-                    boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+                    boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 
                 if(IOThread != nullptr)
                     IOThread->join();
+                
             }
 
 

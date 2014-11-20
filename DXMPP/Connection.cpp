@@ -60,12 +60,12 @@ else std::cout
         DebugOut(DebugOutputTreshold::Debug)
             << "DXMPP: Opening stream" << std::endl;// << Stream.str();
 
-        Client.WriteTextToSocket(Stream.str());
+        Client->WriteTextToSocket(Stream.str());
     }
 
     void Connection::CheckStreamForFeatures()
     {
-        string str = Client.ReadDataStream->str();
+        string str = Client->ReadDataStream->str();
         size_t streamfeatures = str.find("</stream:features>");
             
         if(streamfeatures == string::npos)
@@ -73,13 +73,13 @@ else std::cout
             
         if(CurrentAuthenticationState == AuthenticationState::SASL)
         {
-            Client.ClearReadDataStream();
+            Client->ClearReadDataStream();
             CurrentConnectionState = ConnectionState::Authenticating;
             return;
         }
         if(CurrentAuthenticationState == AuthenticationState::Bind)
         {
-            Client.ClearReadDataStream();
+            Client->ClearReadDataStream();
             CurrentConnectionState = ConnectionState::Authenticating;
             BindResource();
             return;
@@ -88,9 +88,9 @@ else std::cout
         // note to self: cant use loadxml() here because this is not valid xml!!!!
         // due to <stream> <stream::features></stream::features>
         xml_document xdoc;
-        xdoc.load(*Client.ReadDataStream, parse_full&~parse_eol, encoding_auto);
+        xdoc.load(*Client->ReadDataStream, parse_full&~parse_eol, encoding_auto);
             
-        Client.ClearReadDataStream();
+        Client->ClearReadDataStream();
 
         ostringstream o;
             
@@ -139,7 +139,7 @@ else std::cout
                     
                 stringstream Stream;
                 Stream << "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>";
-                Client.WriteTextToSocket(Stream.str());
+                Client->WriteTextToSocket(Stream.str());
                 return;
             }
         }
@@ -151,19 +151,19 @@ else std::cout
         
         if(FeaturesSASL_ScramSHA1)
         {
-            Authentication = new  SASL::SASL_Mechanism_SCRAM_SHA1 ( &Client, MyJID, Password),
+            Authentication = new  SASL::SASL_Mechanism_SCRAM_SHA1 ( Client, MyJID, Password),
             Authentication->Begin();
             return;
         }
         if(FeaturesSASL_DigestMD5)
         {
-            Authentication = new  SASL::Weak::SASL_Mechanism_DigestMD5 ( &Client , MyJID, Password),
+            Authentication = new  SASL::Weak::SASL_Mechanism_DigestMD5 ( Client , MyJID, Password),
             Authentication->Begin();
             return;
         }
         if(FeaturesSASL_Plain)
         {
-            Authentication = new  SASL::Weak::SASL_Mechanism_PLAIN ( &Client , MyJID, Password),
+            Authentication = new  SASL::Weak::SASL_Mechanism_PLAIN ( Client , MyJID, Password),
             Authentication->Begin();
             return;
         }
@@ -174,7 +174,7 @@ else std::cout
     {
         DebugOut(DebugOutputTreshold::Debug)
             << "Server accepted to start TLS handshake" << std::endl;
-        bool Success = Client.ConnectTLSSocket();
+        bool Success = Client->ConnectTLSSocket();
         if(Success)
         {
             DebugOut(DebugOutputTreshold::Debug)
@@ -189,7 +189,7 @@ else std::cout
     // Explicit string hax
     void Connection::CheckForStreamEnd()
     {
-        string str = Client.ReadDataStream->str();
+        string str = Client->ReadDataStream->str();
         size_t streamend = str.find("</stream:stream>");
         if(streamend == string::npos)
             streamend = str.find("</stream>");
@@ -197,7 +197,7 @@ else std::cout
         if(streamend == string::npos)
             return;
             
-        Client.ClearReadDataStream();
+        Client->ClearReadDataStream();
 
         CurrentConnectionState = ConnectionState::ErrorUnknown;
 
@@ -208,10 +208,10 @@ else std::cout
 
     void Connection::CheckForTLSProceed()
     {
-        if(!Client.LoadXML())
+        if(!Client->LoadXML())
             return;
 
-        if(!Client.SelectSingleXMLNode("//proceed"))
+        if(!Client->SelectSingleXMLNode("//proceed"))
         {
             std::cerr << "No proceed tag; B0rked SSL?!";
 
@@ -226,10 +226,10 @@ else std::cout
         
     void Connection::CheckForWaitingForSession()
     {
-        if(!Client.LoadXML())
+        if(!Client->LoadXML())
             return;
 
-        xml_node iqnode = Client.SelectSingleXMLNode("//iq");
+        xml_node iqnode = Client->SelectSingleXMLNode("//iq");
 
         if(!iqnode)
         {
@@ -244,18 +244,18 @@ else std::cout
 
         string Presence = "<presence/>";
 
-        Client.WriteTextToSocket(Presence);
+        Client->WriteTextToSocket(Presence);
         CurrentConnectionState = ConnectionState::Connected;
-        Client.SetKeepAliveByWhiteSpace(string(" "), 30);
+        Client->SetKeepAliveByWhiteSpace(string(" "), 1);
         DebugOut(DebugOutputTreshold::Debug) << std::endl << "ONLINE" << std::endl;
     }
 
     void Connection::CheckForBindSuccess()
     {
-        if(!Client.LoadXML())
+        if(!Client->LoadXML())
             return;
 
-        xml_node iqnode = Client.SelectSingleXMLNode("//iq");
+        xml_node iqnode = Client->SelectSingleXMLNode("//iq");
 
         if(!iqnode)
         {
@@ -272,7 +272,7 @@ else std::cout
                 << std::endl; // todo: verify xml ;)
             
         string StartSession = "<iq type='set' id='1'><session xmlns='urn:ietf:params:xml:ns:xmpp-session'/></iq>";
-        Client.WriteTextToSocket(StartSession);
+        Client->WriteTextToSocket(StartSession);
         CurrentConnectionState = ConnectionState::WaitingForSession;
         CurrentAuthenticationState = AuthenticationState::Authenticated;
     }
@@ -287,7 +287,7 @@ else std::cout
         TStream << "<resource>" << MyJID.GetResource() << "</resource>";
         TStream << "</bind>";
         TStream << "</iq>";
-        Client.WriteTextToSocket(TStream.str());
+        Client->WriteTextToSocket(TStream.str());
     }
 
     void Connection::StartBind()
@@ -298,11 +298,11 @@ else std::cout
 
     void Connection::CheckForSASLData()
     {
-        if(!Client.LoadXML())
+        if(!Client->LoadXML())
             return;
 
-        xml_node challenge = Client.SelectSingleXMLNode("//challenge");
-        xml_node success = Client.SelectSingleXMLNode("//success");
+        xml_node challenge = Client->SelectSingleXMLNode("//challenge");
+        xml_node success = Client->SelectSingleXMLNode("//success");
 
         if(!challenge && !success)
         {           
@@ -361,31 +361,31 @@ else std::cout
         
     void Connection::CheckStreamForStanza()
     {
-        if(!Client.LoadXML())
+        if(!Client->LoadXML())
             return;
 
-        xpath_node message = Client.SelectSingleXMLNode("//message");
+        xpath_node message = Client->SelectSingleXMLNode("//message");
         if(!message)
             return;
 
         if(StanzaHandler)
             StanzaHandler->StanzaReceived(
                         SharedStanza(
-                            new Stanza(Client.FetchDocument(),
+                            new Stanza(Client->FetchDocument(),
                                        message.node())),
                         shared_from_this());
     }
 
     void Connection::CheckForPresence()
     {
-        if(!Client.LoadXML())
+        if(!Client->LoadXML())
             return;
 
-        xpath_node presence = Client.SelectSingleXMLNode("//presence");
+        xpath_node presence = Client->SelectSingleXMLNode("//presence");
         if(!presence)
             return;
 
-        Roster.OnPresence(presence.node());
+        Roster->OnPresence(presence.node());
     }
 
 
@@ -412,7 +412,7 @@ else std::cout
         Stanza->Message.attribute("from").set_value( MyJID.GetFullJID().c_str() );
         Stanza->Message.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
 
-        Client.WriteXMLToSocket(Stanza->Document.get());
+        Client->WriteXMLToSocket(Stanza->Document.get());
     }   
 
     void Connection::CheckStreamForValidXML()
@@ -461,22 +461,25 @@ else std::cout
         SelfHostedVerifier(new TLSVerification(VerificationMode)),
         ConnectionHandler(ConnectionHandler),
         StanzaHandler(StanzaHandler),
-        Client(
+        DebugTreshold(DebugTreshold),
+        CurrentAuthenticationState(AuthenticationState::None),
+        MyJID(RequestedJID),
+        Authentication(nullptr)
+    {
+        Client = new Network::AsyncTCPXMLClient (
                 ((Verification != nullptr) ? Verification : SelfHostedVerifier.get()),
                 Hostname,
                 Portnumber,
                 boost::bind(&Connection::ClientDisconnected, this),
                 boost::bind(&Connection::ClientGotData, this),
-                DebugTreshold ),
-        DebugTreshold(DebugTreshold),
-        CurrentAuthenticationState(AuthenticationState::None),
-        MyJID(RequestedJID),
-        Roster(&Client,
+                DebugTreshold );
+        
+        Roster = new RosterMaintaner (Client,
                PresenceHandler,
                SubscribeHandler,
                SubscribedHandler,
-               UnsubscribedHandler)
-    {
+               UnsubscribedHandler);
+
         FeaturesStartTLS = false;
 
         this->Password = Password;
@@ -490,19 +493,23 @@ else std::cout
                 << std::endl;
 
         PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
-        if( !Client.ConnectSocket() )
+        if( !Client->ConnectSocket() )
         {
             CurrentConnectionState = ConnectionState::ErrorConnecting;
             std::cerr << "DXMPP: Failed to connect" << std::endl;
             return;
         }
         OpenXMPPStream();
-        Client.AsyncRead();
-        Client.ForkIO();
+        Client->AsyncRead();
+        Client->ForkIO();
     }
 
     Connection::~Connection()
     {
+        if( Authentication != nullptr )
+            delete Authentication;
+        delete Roster;
+        delete Client;
         DebugOut(DebugOutputTreshold::Debug) << "~Connection"  << std::endl;
     }
 

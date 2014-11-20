@@ -67,7 +67,7 @@ namespace DXMPP
         StanzaCallback *StanzaHandler;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
-        DXMPP::Network::AsyncTCPXMLClient Client;
+        DXMPP::Network::AsyncTCPXMLClient *Client;
 
         DebugOutputTreshold DebugTreshold;
 
@@ -135,7 +135,7 @@ namespace DXMPP
 
     public:
 
-        RosterMaintaner Roster;
+        RosterMaintaner *Roster;
 
         SharedStanza CreateStanza(const JID &Target);
         void SendStanza(SharedStanza Stanza);

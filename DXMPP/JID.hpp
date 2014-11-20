@@ -37,22 +37,30 @@ namespace DXMPP {
         }
         
     public:
+        
+        ~JID()
+        {
+        }
+        
         JID()
         {
         }
 
-        JID(const std::string &Username, const std::string &Domain, const std::string &Resource)
+        JID(std::string Username, 
+            std::string Domain,
+            std::string &Resource)
+            :
+              Username(Username),
+              Domain(Domain),
+              Resource(Resource)
         {
-            this->Username = Username;
-            this->Domain = Domain;
-            this->Resource = Resource;
         }
         JID(const std::string &FullJID)
         {           
             LoadJID(FullJID);
         }
 
-        JID(const std::string &Bare, const std::string &Resource)
+        JID(const std::string &Bare, std::string Resource)
         {           
             LoadJID(Bare);
             this->Resource = Resource;
@@ -65,12 +73,12 @@ namespace DXMPP {
             this->Resource = B.Resource;
         }
         
-        void SetResource(const std::string &Resource) 
+        void SetResource(std::string Resource) 
         {
             this->Resource = Resource;
         }
 
-        const std::string GetFullJID() const 
+        std::string GetFullJID()
         {
             if (Resource.empty() && Username.empty())
                 return Domain;
@@ -81,24 +89,24 @@ namespace DXMPP {
             return Username + "@" + Domain + "/" + Resource;
         }
         
-        const std::string GetBareJID() const 
+        std::string GetBareJID()
         {
             if (Username.empty())
                 return Domain;
             return Username + "@" + Domain;
         }
         
-        const std::string GetUsername() const 
+        std::string GetUsername() 
         {
             return Username;
         }
         
-        const std::string GetDomain() const 
+        std::string GetDomain() 
         {
             return Domain;
         }
 
-        const std::string GetResource() const 
+        std::string GetResource() 
         {
             return Resource;
         }
