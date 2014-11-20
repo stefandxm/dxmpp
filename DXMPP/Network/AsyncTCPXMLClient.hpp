@@ -81,13 +81,16 @@ namespace DXMPP
             ConnectionState CurrentConnectionState;
 
             boost::scoped_ptr<boost::thread> IOThread;
-            boost::asio::io_service io_service;
-            boost::asio::ip::tcp::socket tcp_socket;
-            boost::asio::ssl::context ssl_context;
-            boost::asio::ssl::stream<boost::asio::ip::tcp::socket&> ssl_socket;
+            boost::asio::io_service io_service;            
+            boost::scoped_ptr<boost::asio::ssl::context> ssl_context;
+            
+            boost::scoped_ptr<boost::asio::ip::tcp::socket> tcp_socket;
+            
+            boost::scoped_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> ssl_socket;
 
 
-            void HandleWrite(std::shared_ptr<std::string> Data,
+            void HandleWrite(boost::asio::ip::tcp::socket *active_socket,
+                             std::shared_ptr<std::string> Data,
                              const boost::system::error_code &error);
 
 
@@ -103,7 +106,9 @@ namespace DXMPP
             void WriteXMLToSocket(pugi::xml_document *Doc);
             void WriteTextToSocket(const std::string &Data);
 
-            void HandleRead(char *ActiveDataBuffer,
+            void HandleRead(
+                            boost::asio::ip::tcp::socket *active_socket,
+                            char *ActiveDataBuffer,
                             const boost::system::error_code &error,
                             std::size_t bytes_transferred);
             void AsyncRead();
@@ -119,6 +124,8 @@ namespace DXMPP
             void ClearReadDataStream();
 
             void ForkIO();
+            
+            void Reset();
 
 
             ~AsyncTCPXMLClient()
@@ -127,9 +134,12 @@ namespace DXMPP
                 while(!io_service.stopped())
                     boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 
+                io_service.reset();
                 if(IOThread != nullptr)
-                    IOThread->join();
-                
+                {
+                    if( boost::this_thread::get_id() != IOThread->get_id ())
+                        IOThread->join();
+                }
             }
 
 
@@ -152,39 +162,12 @@ namespace DXMPP
                   SSLBuffer( boost::asio::buffer(ReadDataBufferSSL, ReadDataBufferSize) ),
                   NonSSLBuffer( boost::asio::buffer(ReadDataBufferNonSSL, ReadDataBufferSize) ),
                   io_service(),
-                  tcp_socket(io_service),
-                  ssl_context(boost::asio::ssl::context::sslv23),
-                  ssl_socket(tcp_socket, ssl_context),
                   IncomingDocument(nullptr),
                   ErrorCallback(ErrorCallback),
                   GotDataCallback(GotDataCallback)
 
             {                
-                ReadDataStream = &ReadDataStreamNonSSL;
-                ReadDataBuffer = ReadDataBufferNonSSL;
-
-                memset(ReadDataBufferSSL, 0, ReadDataBufferSize);
-                memset(ReadDataBufferNonSSL, 0, ReadDataBufferSize);
-
-                SSLConnection = false;
-                CurrentConnectionState = ConnectionState::Disconnected;                
-
-                ssl_socket.set_verify_mode(boost::asio::ssl::verify_peer);
-                switch(TLSConfig->Mode)
-                {
-                case TLSVerificationMode::RFC2818_Hostname:
-                    ssl_socket.set_verify_callback(
-                        boost::asio::ssl::rfc2818_verification("host.name"));
-                    break;
-                case TLSVerificationMode::Custom:
-                case TLSVerificationMode::None:
-                    ssl_socket.set_verify_callback(
-                        boost::bind(&AsyncTCPXMLClient::VerifyCertificate,
-                                    this,
-                                    _1,
-                                    _2));
-                    break;
-                }
+                
 
                 this->Hostname = Hostname;
                 this->Portnumber = Portnumber;

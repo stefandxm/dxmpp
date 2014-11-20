@@ -443,7 +443,29 @@ else std::cout
         CheckForStreamEnd();
     }
         
+    void Connection::Reset()
+    {
+        FeaturesSASL_CramMD5 = false;
+        FeaturesSASL_DigestMD5 = false;
+        FeaturesSASL_Plain = false;
+        FeaturesSASL_ScramSHA1 = false;
+        FeaturesStartTLS = false;
+        CurrentAuthenticationState = AuthenticationState::None;
+        
+        if(Authentication != nullptr)
+        {
+            Authentication = nullptr;
+            delete Authentication;
+        }
+        
+    }
 
+    void Connection::Reconnect()
+    {
+        Reset();
+        Connect();
+    }
+    
     Connection::Connection(const std::string &Hostname,
         int Portnumber,
         const JID &RequestedJID,
@@ -480,10 +502,9 @@ else std::cout
                SubscribedHandler,
                UnsubscribedHandler);
 
-        FeaturesStartTLS = false;
-
         this->Password = Password;
-        Connect();
+
+        Reconnect();
     }
 
     void Connection::Connect()
@@ -493,6 +514,7 @@ else std::cout
                 << std::endl;
 
         PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
+        Client->Reset();
         if( !Client->ConnectSocket() )
         {
             CurrentConnectionState = ConnectionState::ErrorConnecting;

@@ -90,6 +90,7 @@ namespace DXMPP
 
         SASL::SASLMechanism *Authentication;
 
+        void Reset();
         void InitTLS();
         void Connect();
         void OpenXMPPStream();
@@ -135,6 +136,7 @@ namespace DXMPP
 
     public:
 
+        void Reconnect();
         RosterMaintaner *Roster;
 
         SharedStanza CreateStanza(const JID &Target);

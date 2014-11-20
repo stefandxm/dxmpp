@@ -40,20 +40,73 @@ else std::cout
             ReadDataStream->str(string(""));
         }
 
+        void AsyncTCPXMLClient::Reset()
+        {
+            if(tcp_socket != nullptr && tcp_socket->is_open())
+                tcp_socket->close();
+
+            io_service.stop();
+            io_service.reset();   
+            ssl_context.reset(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
+            tcp_socket.reset( new boost::asio::ip::tcp::socket(io_service) );
+            ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
+                    
+            
+            ReadDataStream = &ReadDataStreamNonSSL;
+            ReadDataBuffer = ReadDataBufferNonSSL;
+            memset(ReadDataBufferSSL, 0, ReadDataBufferSize);
+            memset(ReadDataBufferNonSSL, 0, ReadDataBufferSize);
+            ClearReadDataStream();
+            HasUnFetchedXML = false;
+            IncomingDocument = nullptr;
+
+            SSLConnection = false;
+            CurrentConnectionState = ConnectionState::Disconnected;                
+
+            ssl_socket->set_verify_mode(boost::asio::ssl::verify_peer);
+            switch(TLSConfig->Mode)
+            {
+            case TLSVerificationMode::RFC2818_Hostname:
+                ssl_socket->set_verify_callback(
+                    boost::asio::ssl::rfc2818_verification("host.name"));
+                break;
+            case TLSVerificationMode::Custom:
+            case TLSVerificationMode::None:
+                ssl_socket->set_verify_callback(
+                    boost::bind(&AsyncTCPXMLClient::VerifyCertificate,
+                                this,
+                                _1,
+                                _2));
+                break;
+            }
+            
+        }
+        
+        
         void AsyncTCPXMLClient::ForkIO()
         {
             if(IOThread == nullptr)
+            {
                 IOThread.reset(
                             new boost::thread(boost::bind(
                                                   &boost::asio::io_service::run,
                                                   &io_service)));
+            }
+            else
+            {
+                std::cout << "I/O already forked, returning." << std::endl;
+            }
         }
 
         void AsyncTCPXMLClient::HandleRead(
+                boost::asio::ip::tcp::socket *active_socket,
                 char * ActiveBuffer,
                 const boost::system::error_code& error,
                 std::size_t bytes_transferred)
         {
+            if( active_socket != tcp_socket.get() )
+                return;
+            
             ReadDataBuffer = ActiveBuffer;
 
             if( ReadDataBuffer == ReadDataBufferSSL )
@@ -61,7 +114,7 @@ else std::cout
             else
                 ReadDataStream = &ReadDataStreamNonSSL;
 
-            if(error)
+            if(error && error != boost::system::errc::operation_canceled)
             {
                 SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
@@ -88,20 +141,22 @@ else std::cout
         {
             if(SSLConnection)
             {
-                boost::asio::async_read(ssl_socket, SSLBuffer,
+                boost::asio::async_read(*ssl_socket, SSLBuffer,
                                         boost::asio::transfer_at_least(1),
                                         boost::bind(&AsyncTCPXMLClient::HandleRead,
                                                     this,
+                                                    tcp_socket.get(),
                                                     ReadDataBufferSSL,
                                                     boost::asio::placeholders::error,
                                                     boost::asio::placeholders::bytes_transferred));
             }
             else
             {
-                boost::asio::async_read(tcp_socket, NonSSLBuffer,
+                boost::asio::async_read(*tcp_socket, NonSSLBuffer,
                                         boost::asio::transfer_at_least(1),
                                         boost::bind(&AsyncTCPXMLClient::HandleRead,
                                                     this,
+                                                    tcp_socket.get(),
                                                     ReadDataBufferNonSSL,
                                                     boost::asio::placeholders::error,
                                                     boost::asio::placeholders::bytes_transferred));
@@ -166,17 +221,19 @@ else std::cout
 
             if(SSLConnection)
             {
-                boost::asio::async_write(ssl_socket, boost::asio::buffer(*SharedData),
+                boost::asio::async_write(*ssl_socket, boost::asio::buffer(*SharedData),
                                             boost::bind(&AsyncTCPXMLClient::HandleWrite,
                                                         this,
+                                                        tcp_socket.get(),
                                                         SharedData,
                                                         boost::asio::placeholders::error));
             }
             else
             {
-                boost::asio::async_write(tcp_socket, boost::asio::buffer(*SharedData),
+                boost::asio::async_write(*tcp_socket, boost::asio::buffer(*SharedData),
                                             boost::bind(&AsyncTCPXMLClient::HandleWrite,
                                                         this,
+                                                        tcp_socket.get(),
                                                         SharedData,
                                                         boost::asio::placeholders::error));
             }
@@ -191,7 +248,7 @@ else std::cout
             // http://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/
             int optval;
             socklen_t optlen = sizeof(optval);
-            if(getsockopt(tcp_socket.lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0)
+            if(getsockopt(tcp_socket->lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0)
             {
                 std::cerr << "Unable to getsockopt for keepalive" << std::endl;
                 return false;
@@ -202,12 +259,12 @@ else std::cout
             /* Set the option active */
             optval = 1;
             optlen = sizeof(optval);
-            if(setsockopt(tcp_socket.lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+            if(setsockopt(tcp_socket->lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
                 std::cerr << "Unable to setsockopt for keepalive" << std::endl;
                 return false;
             }
             /* Check the status again */
-            if(getsockopt(tcp_socket.lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0) {
+            if(getsockopt(tcp_socket->lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0) {
                 std::cerr << "Unable to very getsockopt for keepalive" << std::endl;
                 return false;
             }
@@ -260,7 +317,7 @@ else std::cout
             boost::system::error_code io_error = boost::asio::error::host_not_found;
             tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
-            boost::asio::connect(tcp_socket.lowest_layer(), endpoint_iterator, io_error);
+            boost::asio::connect(tcp_socket->lowest_layer(), endpoint_iterator, io_error);
 
             if (io_error)
             {
@@ -305,10 +362,14 @@ else std::cout
             return TLSConfig->VerifyCertificate(preverified, ctx);
         }
 
-        void AsyncTCPXMLClient::HandleWrite(std::shared_ptr<std::string> Data,
+        void AsyncTCPXMLClient::HandleWrite(boost::asio::ip::tcp::socket *active_socket,
+                                            std::shared_ptr<std::string> Data,
                                             const boost::system::error_code &error)
         {
-            if(error)
+            if(active_socket != tcp_socket.get())
+                return;
+            
+            if(error && error != boost::system::errc::operation_canceled)
             {
                 SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
@@ -323,9 +384,9 @@ else std::cout
 
         bool AsyncTCPXMLClient::ConnectTLSSocket()
         {
-            tcp_socket.cancel();
+            tcp_socket->cancel();
 
-            tcp_socket.set_option(tcp::no_delay(true));
+            tcp_socket->set_option(tcp::no_delay(true));
 
             ReadDataBuffer = ReadDataBufferSSL;
             ReadDataStream = &ReadDataStreamSSL;
@@ -335,7 +396,7 @@ else std::cout
 
             DebugOut(DebugOutputTreshold::Debug) << "Calling handshake" << std::endl;
 
-            ssl_socket.handshake(boost::asio::ssl::stream_base::client, error);
+            ssl_socket->handshake(boost::asio::ssl::stream_base::client, error);
 
             if (error)
             {
