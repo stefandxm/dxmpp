@@ -68,6 +68,7 @@ namespace DXMPP
             enum class ConnectionState
             {
                 Connected,
+                Upgrading,
                 Disconnected,
                 Error
             };
@@ -78,10 +79,10 @@ namespace DXMPP
             int Portnumber;
 
             bool SSLConnection;
-            ConnectionState CurrentConnectionState;
+            volatile ConnectionState CurrentConnectionState;
 
             boost::scoped_ptr<boost::thread> IOThread;
-            boost::asio::io_service io_service;            
+            boost::asio::io_service io_service;
             boost::scoped_ptr<boost::asio::ssl::context> ssl_context;
             
             boost::scoped_ptr<boost::asio::ip::tcp::socket> tcp_socket;
@@ -134,7 +135,6 @@ namespace DXMPP
                 while(!io_service.stopped())
                     boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 
-                io_service.reset();
                 if(IOThread != nullptr)
                 {
                     if( boost::this_thread::get_id() != IOThread->get_id ())
@@ -167,7 +167,6 @@ namespace DXMPP
                   GotDataCallback(GotDataCallback)
 
             {                
-                
 
                 this->Hostname = Hostname;
                 this->Portnumber = Portnumber;

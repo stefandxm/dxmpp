@@ -182,7 +182,11 @@ else std::cout
             OpenXMPPStream();
         }
         else
+        {
             std::cerr << "TLS Connection failed" << std::endl;
+            CurrentConnectionState = ConnectionState::ErrorUnknown;
+            BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
+        }
 
     }
         
@@ -399,6 +403,12 @@ else std::cout
 
     void Connection::SendStanza(SharedStanza Stanza)
     {
+        if(this->CurrentConnectionState != ConnectionState::Connected)
+        {
+            throw std::runtime_error("Trying to send Stanza with disconnected connection.");
+        }
+        std:cout << "Send Stanza from Thread " << boost::this_thread::get_id() << std::endl;
+
         switch(Stanza->Type)
         {
         case StanzaType::Chat:

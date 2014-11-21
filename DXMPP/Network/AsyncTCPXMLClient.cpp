@@ -42,14 +42,30 @@ else std::cout
 
         void AsyncTCPXMLClient::Reset()
         {
-            if(tcp_socket != nullptr && tcp_socket->is_open())
-                tcp_socket->close();
+            CurrentConnectionState = ConnectionState::Disconnected;
 
-            io_service.stop();
-            io_service.reset();   
+//            if(ssl_socket != nullptr)
+//            {
+//                try
+//                {
+//                    ssl_socket->shutdown();
+//                }
+//                catch(...)
+//                {
+//                }
+//                try
+//                {
+            ssl_socket.reset( nullptr );
+//                }
+//                catch(...)
+//                {
+//                }
+//            }
+
             ssl_context.reset(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
             tcp_socket.reset( new boost::asio::ip::tcp::socket(io_service) );
             ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
+
                     
             
             ReadDataStream = &ReadDataStreamNonSSL;
@@ -61,7 +77,6 @@ else std::cout
             IncomingDocument = nullptr;
 
             SSLConnection = false;
-            CurrentConnectionState = ConnectionState::Disconnected;                
 
             ssl_socket->set_verify_mode(boost::asio::ssl::verify_peer);
             switch(TLSConfig->Mode)
@@ -79,7 +94,8 @@ else std::cout
                                 _2));
                 break;
             }
-            
+
+
         }
         
         
@@ -96,6 +112,7 @@ else std::cout
             {
                 std::cout << "I/O already forked, returning." << std::endl;
             }
+            io_service.reset();
         }
 
         void AsyncTCPXMLClient::HandleRead(
@@ -104,6 +121,12 @@ else std::cout
                 const boost::system::error_code& error,
                 std::size_t bytes_transferred)
         {
+            if (error == boost::system::errc::operation_canceled)
+                return;
+
+            if( CurrentConnectionState != ConnectionState::Connected )
+                return;
+
             if( active_socket != tcp_socket.get() )
                 return;
             
@@ -114,10 +137,10 @@ else std::cout
             else
                 ReadDataStream = &ReadDataStreamNonSSL;
 
-            if(error && error != boost::system::errc::operation_canceled)
+            if(error)
             {
-                SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
+                SendKeepAliveWhitespaceTimer = nullptr;
                 std::cerr << "HandleRead: Got socket error: " << error
                           << " / " << error.message() << std::endl;
                 ErrorCallback();
@@ -217,6 +240,9 @@ else std::cout
 
         void AsyncTCPXMLClient::WriteTextToSocket(const string &Data)
         {
+            if( CurrentConnectionState != ConnectionState::Connected )
+                return;
+
             std::shared_ptr<std::string> SharedData = std::make_shared<std::string>(Data);
 
             if(SSLConnection)
@@ -277,10 +303,9 @@ else std::cout
 
         void AsyncTCPXMLClient::SendKeepAliveWhitespace()
         {
-            WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
-
             if( SendKeepAliveWhitespaceTimer != nullptr )
             {
+                WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
                 SendKeepAliveWhitespaceTimer->expires_from_now (
                             boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
                 SendKeepAliveWhitespaceTimer->async_wait(
@@ -292,7 +317,7 @@ else std::cout
 
         void AsyncTCPXMLClient::SetKeepAliveByWhiteSpace(const std::string &DataToSend,
                                                          int TimeoutSeconds)
-        {
+        {            
             SendKeepAliveWhiteSpaceDataToSend = DataToSend;
             SendKeepAliveWhiteSpaceTimeeoutSeconds = TimeoutSeconds;
 
@@ -307,6 +332,7 @@ else std::cout
 
         bool AsyncTCPXMLClient::ConnectSocket()
         {
+            SendKeepAliveWhitespaceTimer = nullptr;
             ReadDataBuffer = ReadDataBufferNonSSL;
             ReadDataStream = &ReadDataStreamNonSSL;
 
@@ -366,10 +392,16 @@ else std::cout
                                             std::shared_ptr<std::string> Data,
                                             const boost::system::error_code &error)
         {
+            if( CurrentConnectionState != ConnectionState::Connected )
+                return;
+
+            if (error == boost::system::errc::operation_canceled)
+                return;
+
             if(active_socket != tcp_socket.get())
                 return;
             
-            if(error && error != boost::system::errc::operation_canceled)
+            if(error)
             {
                 SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
@@ -384,6 +416,8 @@ else std::cout
 
         bool AsyncTCPXMLClient::ConnectTLSSocket()
         {
+            this->CurrentConnectionState = ConnectionState::Upgrading;
+
             tcp_socket->cancel();
 
             tcp_socket->set_option(tcp::no_delay(true));
@@ -395,6 +429,7 @@ else std::cout
             boost::system::error_code error;
 
             DebugOut(DebugOutputTreshold::Debug) << "Calling handshake" << std::endl;
+
 
             ssl_socket->handshake(boost::asio::ssl::stream_base::client, error);
 
@@ -411,6 +446,7 @@ else std::cout
                     << "Succesfully upgraded to TLS!" << std::endl;
             }
 
+            this->CurrentConnectionState = ConnectionState::Connected;
             return true;
         }
     }
