@@ -407,7 +407,6 @@ else std::cout
         {
             throw std::runtime_error("Trying to send Stanza with disconnected connection.");
         }
-        std:cout << "Send Stanza from Thread " << boost::this_thread::get_id() << std::endl;
 
         switch(Stanza->Type)
         {
