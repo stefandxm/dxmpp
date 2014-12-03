@@ -296,9 +296,7 @@ else std::cout
                     
                     ErrorCallback();
                 }                
-            }
-            
-
+            }            
             
             DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
                 std::endl << Data << std::endl;
