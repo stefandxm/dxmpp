@@ -60,7 +60,7 @@ namespace DXMPP
             std::unique_ptr<boost::asio::deadline_timer>  SendKeepAliveWhitespaceTimer;
             std::string SendKeepAliveWhiteSpaceDataToSend;
             int SendKeepAliveWhiteSpaceTimeeoutSeconds;
-
+            
         public:
 
             std::stringstream *ReadDataStream;
@@ -73,8 +73,6 @@ namespace DXMPP
                 Disconnected,
                 Error
             };
-
-
 
             std::string Hostname;
             int Portnumber;

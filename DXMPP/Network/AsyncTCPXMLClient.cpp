@@ -238,35 +238,70 @@ else std::cout
             WriteTextToSocket(ss.str());
         }
 
+
         void AsyncTCPXMLClient::WriteTextToSocket(const string &Data)
         {
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
-
-            std::shared_ptr<std::string> SharedData = std::make_shared<std::string>(Data);
-
+            
+            
+            
+            boost::system::error_code ec;
+            
             if(SSLConnection)
             {
+                /*
                 boost::asio::async_write(*ssl_socket, boost::asio::buffer(*SharedData),
                                             boost::bind(&AsyncTCPXMLClient::HandleWrite,
                                                         this,
                                                         tcp_socket.get(),
                                                         SharedData,
                                                         boost::asio::placeholders::error));
+                                                        */
+                    
+                std::size_t written = boost::asio::write(*ssl_socket,boost::asio::buffer(Data),ec);
+                if( written != Data.size() || ec != boost::system::errc::success)
+                {
+                    SendKeepAliveWhitespaceTimer = nullptr;
+                    CurrentConnectionState = ConnectionState::Error;
+                    std::cerr << "WriteTextToSocket: Got ssl socket error: "
+                              << ec << " / " << ec.message() << std::endl;
+                    
+                    
+                    ErrorCallback();
+                }
+                
+                
             }
             else
             {
+                /*
+                std::shared_ptr<std::string> SharedData = std::make_shared<std::string>(Data);
                 boost::asio::async_write(*tcp_socket, boost::asio::buffer(*SharedData),
                                             boost::bind(&AsyncTCPXMLClient::HandleWrite,
                                                         this,
                                                         tcp_socket.get(),
                                                         SharedData,
                                                         boost::asio::placeholders::error));
+                                                        */
+                
+                std::size_t written = boost::asio::write(*tcp_socket,boost::asio::buffer(Data),ec);
+                if( written != Data.size() || ec != boost::system::errc::success)
+                {
+                    SendKeepAliveWhitespaceTimer = nullptr;
+                    CurrentConnectionState = ConnectionState::Error;
+                    std::cerr << "WriteTextToSocket: Got tcp socket error: "
+                              << ec << " / " << ec.message() << std::endl;
+                    
+                    
+                    ErrorCallback();
+                }                
             }
+            
 
+            
             DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
                 std::endl << Data << std::endl;
-
         }
 
         bool AsyncTCPXMLClient::EnsureTCPKeepAlive()
@@ -391,7 +426,7 @@ else std::cout
         void AsyncTCPXMLClient::HandleWrite(boost::asio::ip::tcp::socket *active_socket,
                                             std::shared_ptr<std::string> Data,
                                             const boost::system::error_code &error)
-        {
+        {            
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
 
@@ -399,18 +434,21 @@ else std::cout
                 return;
 
             if(active_socket != tcp_socket.get())
-                return;
+                return;                                    
             
             if(error)
-            {
+            {                
                 SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
                 std::cerr << "Handlewrite: Got socket error: "
                           << error << " / " << error.message() << std::endl;
+                
+                
                 ErrorCallback();
+
                 return;
             }
-
+                       
             //DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
         }
 
@@ -418,9 +456,9 @@ else std::cout
         {
             this->CurrentConnectionState = ConnectionState::Upgrading;
 
-            tcp_socket->cancel();
+            //tcp_socket->cancel();
 
-            tcp_socket->set_option(tcp::no_delay(true));
+            //tcp_socket->set_option(tcp::no_delay(true));
 
             ReadDataBuffer = ReadDataBufferSSL;
             ReadDataStream = &ReadDataStreamSSL;
