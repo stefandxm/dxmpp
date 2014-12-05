@@ -62,12 +62,14 @@ namespace DXMPP
             Authenticated
         };
 
+        boost::shared_ptr<boost::asio::io_service> io_service;
+        boost::scoped_ptr<boost::thread> IOThread;
         boost::scoped_ptr<TLSVerification> SelfHostedVerifier;
         ConnectionCallback *ConnectionHandler;
         StanzaCallback *StanzaHandler;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
-        DXMPP::Network::AsyncTCPXMLClient *Client;
+        boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
 
         DebugOutputTreshold DebugTreshold;
 
@@ -88,6 +90,8 @@ namespace DXMPP
         JID MyJID;
         
 
+        TLSVerification *Verification;
+        TLSVerificationMode VerificationMode;
         SASL::SASLMechanism *Authentication;
 
         void Reset();

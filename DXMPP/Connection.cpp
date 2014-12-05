@@ -494,24 +494,21 @@ else std::cout
         StanzaHandler(StanzaHandler),
         DebugTreshold(DebugTreshold),
         CurrentAuthenticationState(AuthenticationState::None),
+        Hostname(Hostname),
+        Password(Password),
+        Portnumber(Portnumber),        
         MyJID(RequestedJID),
+        Verification(Verification),
+        VerificationMode(VerificationMode),
         Authentication(nullptr)
-    {
-        Client = new Network::AsyncTCPXMLClient (
-                ((Verification != nullptr) ? Verification : SelfHostedVerifier.get()),
-                Hostname,
-                Portnumber,
-                boost::bind(&Connection::ClientDisconnected, this),
-                boost::bind(&Connection::ClientGotData, this),
-                DebugTreshold );
-        
+    {        
         Roster = new RosterMaintaner (Client,
                PresenceHandler,
                SubscribeHandler,
                SubscribedHandler,
                UnsubscribedHandler);
 
-        this->Password = Password;
+        //this->Password = Password;
 
         Reconnect();
     }
@@ -522,8 +519,21 @@ else std::cout
                 << "Starting io_service run in background thread"
                 << std::endl;
 
-        PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
-        Client->Reset();
+        io_service.reset( new boost::asio::io_service() );       
+        
+        Client.reset(
+                    new Network::AsyncTCPXMLClient (
+                        io_service,
+                        ((Verification != nullptr) ? Verification : SelfHostedVerifier.get()),
+                        Hostname,
+                        Portnumber,
+                        boost::bind(&Connection::ClientDisconnected, this),
+                        boost::bind(&Connection::ClientGotData, this),
+                        DebugTreshold ) );
+        
+       
+        PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;        
+        //Client->Reset();
         if( !Client->ConnectSocket() )
         {
             CurrentConnectionState = ConnectionState::ErrorConnecting;
@@ -532,7 +542,13 @@ else std::cout
         }
         OpenXMPPStream();
         Client->AsyncRead();
-        Client->ForkIO();
+        Roster->ResetClient(Client);
+        
+        // Fork io
+        IOThread.reset(
+                    new boost::thread(boost::bind(
+                                          &boost::asio::io_service::run,
+                                          io_service.get())));
     }
 
     Connection::~Connection()
@@ -540,7 +556,7 @@ else std::cout
         if( Authentication != nullptr )
             delete Authentication;
         delete Roster;
-        delete Client;
+        
         DebugOut(DebugOutputTreshold::Debug) << "~Connection"  << std::endl;
     }
 

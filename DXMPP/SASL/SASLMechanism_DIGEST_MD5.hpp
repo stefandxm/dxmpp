@@ -24,7 +24,7 @@ namespace DXMPP
             public:
                 void Begin();
 
-                SASL_Mechanism_DigestMD5(DXMPP::Network::AsyncTCPXMLClient *Uplink,
+                SASL_Mechanism_DigestMD5(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
                     const JID &MyJID,
                     const std::string &Password)
                     :

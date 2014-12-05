@@ -22,7 +22,7 @@ namespace DXMPP
             public:
                 void Begin();
                 
-                SASL_Mechanism_PLAIN(DXMPP::Network::AsyncTCPXMLClient *Uplink,
+                SASL_Mechanism_PLAIN(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
                     const JID &MyJID, 
                     const std::string &Password)        
                     :SASLMechanism(Uplink, MyJID, Password)

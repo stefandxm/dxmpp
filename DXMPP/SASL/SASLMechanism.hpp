@@ -39,9 +39,9 @@ namespace DXMPP
 
             JID MyJID;
             std::string Password;
-            DXMPP::Network::AsyncTCPXMLClient *Uplink;
+            boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink;
 
-            SASLMechanism(DXMPP::Network::AsyncTCPXMLClient *Uplink,
+            SASLMechanism(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
                 const JID &MyJID, 
                 const std::string &Password)        
                 :

@@ -80,8 +80,8 @@ namespace DXMPP
             bool SSLConnection;
             volatile ConnectionState CurrentConnectionState;
 
-            boost::scoped_ptr<boost::thread> IOThread;
-            boost::asio::io_service io_service;
+            //boost::scoped_ptr<boost::thread> IOThread;
+            boost::shared_ptr<boost::asio::io_service> io_service;
             boost::scoped_ptr<boost::asio::ssl::context> ssl_context;
             
             boost::scoped_ptr<boost::asio::ip::tcp::socket> tcp_socket;
@@ -123,22 +123,27 @@ namespace DXMPP
 
             void ClearReadDataStream();
 
-            void ForkIO();
+            //void ForkIO();
             
             void Reset();
 
 
             ~AsyncTCPXMLClient()
             {
+                /*
                 io_service.stop();
                 while(!io_service.stopped())
                     boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-
+                    */
+                /*
+                
                 if(IOThread != nullptr)
                 {
                     if( boost::this_thread::get_id() != IOThread->get_id ())
                         IOThread->join();
                 }
+                
+                */
             }
 
 
@@ -148,25 +153,26 @@ namespace DXMPP
             ErrorCallbackFunction ErrorCallback;
             GotDataCallbackFunction GotDataCallback;
 
-            AsyncTCPXMLClient( TLSVerification *TLSConfig,
+            AsyncTCPXMLClient( 
+                               boost::shared_ptr<boost::asio::io_service> IOService,
+                               TLSVerification *TLSConfig,
                                const std::string &Hostname,
                                int Portnumber,                               
                                const ErrorCallbackFunction &ErrorCallback,
                                const GotDataCallbackFunction &GotDataCallback,
                                DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error)
-                :
+                :                  
                   TLSConfig(TLSConfig),
                   DebugTreshold(DebugTreshold),
                   HasUnFetchedXML(false),
                   SSLBuffer( boost::asio::buffer(ReadDataBufferSSL, ReadDataBufferSize) ),
                   NonSSLBuffer( boost::asio::buffer(ReadDataBufferNonSSL, ReadDataBufferSize) ),
-                  io_service(),
                   IncomingDocument(nullptr),
                   ErrorCallback(ErrorCallback),
                   GotDataCallback(GotDataCallback)
 
             {                
-
+                this->io_service = IOService;
                 this->Hostname = Hostname;
                 this->Portnumber = Portnumber;
             }

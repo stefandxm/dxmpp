@@ -44,26 +44,8 @@ else std::cout
         {
             CurrentConnectionState = ConnectionState::Disconnected;
 
-//            if(ssl_socket != nullptr)
-//            {
-//                try
-//                {
-//                    ssl_socket->shutdown();
-//                }
-//                catch(...)
-//                {
-//                }
-//                try
-//                {
-            ssl_socket.reset( nullptr );
-//                }
-//                catch(...)
-//                {
-//                }
-//            }
-
             ssl_context.reset(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
-            tcp_socket.reset( new boost::asio::ip::tcp::socket(io_service) );
+            tcp_socket.reset( new boost::asio::ip::tcp::socket(*io_service) );
             ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
 
                     
@@ -98,7 +80,7 @@ else std::cout
 
         }
         
-        
+        /*
         void AsyncTCPXMLClient::ForkIO()
         {
             if(IOThread == nullptr)
@@ -113,7 +95,7 @@ else std::cout
                 std::cout << "I/O already forked, returning." << std::endl;
             }
             io_service.reset();
-        }
+        }*/
 
         void AsyncTCPXMLClient::HandleRead(
                 boost::asio::ip::tcp::socket *active_socket,
@@ -356,7 +338,7 @@ else std::cout
 
             SendKeepAliveWhitespaceTimer.reset (
                         new boost::asio::deadline_timer (
-                            this->io_service, boost::posix_time::seconds(
+                            *io_service, boost::posix_time::seconds(
                                 SendKeepAliveWhiteSpaceTimeeoutSeconds) )
                         );
 
@@ -365,11 +347,12 @@ else std::cout
 
         bool AsyncTCPXMLClient::ConnectSocket()
         {
+            Reset();
             SendKeepAliveWhitespaceTimer = nullptr;
             ReadDataBuffer = ReadDataBufferNonSSL;
             ReadDataStream = &ReadDataStreamNonSSL;
 
-            tcp::resolver resolver(io_service);
+            tcp::resolver resolver(*io_service);
             std::string SPortnumber;
             SPortnumber = boost::lexical_cast<string>( Portnumber);
             tcp::resolver::query query(Hostname, SPortnumber);

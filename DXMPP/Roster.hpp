@@ -55,7 +55,7 @@ namespace  DXMPP
     {
         friend class Connection;
 
-        DXMPP::Network::AsyncTCPXMLClient *Uplink;
+        boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink;
 
         PresenceCallback *PresenceHandler;
         SubscribeCallback *SubscribeHandler;
@@ -73,12 +73,16 @@ namespace  DXMPP
         void OnPresence(pugi::xml_node Node);
     public:
 
-
         // User functions
         void Subscribe(JID To);
         void Unsubscribe(JID To);
+        
+        void ResetClient(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink)
+        {
+            this->Uplink = Uplink;
+        }
 
-        RosterMaintaner(DXMPP::Network::AsyncTCPXMLClient *Uplink,
+        RosterMaintaner(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
                         PresenceCallback *PresenceHandler,
                         SubscribeCallback *SubscribeHandler,
                         SubscribedCallback *SubscribedHandler,
