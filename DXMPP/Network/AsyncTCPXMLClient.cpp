@@ -226,7 +226,7 @@ else std::cout
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
             
-            
+            boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
             
             boost::system::error_code ec;
             
@@ -280,6 +280,8 @@ else std::cout
                 }                
             }            
             
+            LastWrite = boost::posix_time::microsec_clock::local_time();
+
             DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
                 std::endl << Data << std::endl;
         }
@@ -318,16 +320,23 @@ else std::cout
 
         void AsyncTCPXMLClient::SendKeepAliveWhitespace()
         {
-            if( SendKeepAliveWhitespaceTimer != nullptr )
+            if( SendKeepAliveWhitespaceTimer == nullptr )
+                return;
+
             {
-                WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
-                SendKeepAliveWhitespaceTimer->expires_from_now (
-                            boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
-                SendKeepAliveWhitespaceTimer->async_wait(
-                            boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
-                                        this)
-                            );
+                boost::shared_lock<boost::shared_mutex> ReadLock(this->WriteMutex);
+                if( LastWrite >
+                        (boost::posix_time::microsec_clock::local_time() - boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) )
+                   )
+                    return;
             }
+            WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
+            SendKeepAliveWhitespaceTimer->expires_from_now (
+                        boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
+            SendKeepAliveWhitespaceTimer->async_wait(
+                        boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
+                                    this)
+                        );
         }
 
         void AsyncTCPXMLClient::SetKeepAliveByWhiteSpace(const std::string &DataToSend,
