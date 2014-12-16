@@ -519,6 +519,16 @@ else std::cout
                 << "Starting io_service run in background thread"
                 << std::endl;
 
+        if( io_service != nullptr )
+        {
+            io_service->stop();
+        }
+
+        if( IOThread != nullptr )
+        {
+            IOThread->join();
+        }
+
         io_service.reset( new boost::asio::io_service() );       
         
         Client.reset(
@@ -538,6 +548,7 @@ else std::cout
         {
             CurrentConnectionState = ConnectionState::ErrorConnecting;
             std::cerr << "DXMPP: Failed to connect" << std::endl;
+            BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorConnecting);
             return;
         }
         OpenXMPPStream();
