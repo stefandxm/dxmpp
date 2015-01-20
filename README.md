@@ -12,7 +12,7 @@ Please note dependencies may use a different license.
 
 Dependencies
 -----------
-Boost, Crypto++, OpenSSL, Pugi XML.
+Boost, Crypto++, OpenSSL, Pugi XML, eXpat
 
 Contributors in order of appearance
 -----------

@@ -11,6 +11,8 @@
 #include <boost/lexical_cast.hpp>
 #include <memory>
 
+#include <expat.h>
+
 namespace DXMPP
 {
     namespace Network
@@ -27,12 +29,14 @@ else std::cout
 
         std::unique_ptr<pugi::xml_document> AsyncTCPXMLClient::FetchDocument()
         {
-            pugi::xml_document *RVal = IncomingDocument;
+            boost::unique_lock<boost::shared_mutex> Lock(IncomingDocumentsMutex);
+            if( IncomingDocuments.empty() )
+                return nullptr;
 
-            HasUnFetchedXML = false;
-            IncomingDocument = nullptr;
+            std::unique_ptr<pugi::xml_document> RVal(IncomingDocuments.front());
+            IncomingDocuments.pop();
 
-            return  std::unique_ptr<pugi::xml_document> (RVal);
+            return RVal;
         }
 
         void AsyncTCPXMLClient::ClearReadDataStream()
@@ -48,15 +52,13 @@ else std::cout
             tcp_socket.reset( new boost::asio::ip::tcp::socket(*io_service) );
             ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
 
-                    
-            
+
+
             ReadDataStream = &ReadDataStreamNonSSL;
             ReadDataBuffer = ReadDataBufferNonSSL;
             memset(ReadDataBufferSSL, 0, ReadDataBufferSize);
             memset(ReadDataBufferNonSSL, 0, ReadDataBufferSize);
             ClearReadDataStream();
-            HasUnFetchedXML = false;
-            IncomingDocument = nullptr;
 
             SSLConnection = false;
 
@@ -79,23 +81,6 @@ else std::cout
 
 
         }
-        
-        /*
-        void AsyncTCPXMLClient::ForkIO()
-        {
-            if(IOThread == nullptr)
-            {
-                IOThread.reset(
-                            new boost::thread(boost::bind(
-                                                  &boost::asio::io_service::run,
-                                                  &io_service)));
-            }
-            else
-            {
-                std::cout << "I/O already forked, returning." << std::endl;
-            }
-            io_service.reset();
-        }*/
 
         void AsyncTCPXMLClient::HandleRead(
                 boost::asio::ip::tcp::socket *active_socket,
@@ -111,7 +96,7 @@ else std::cout
 
             if( active_socket != tcp_socket.get() )
                 return;
-            
+
             ReadDataBuffer = ActiveBuffer;
 
             if( ReadDataBuffer == ReadDataBufferSSL )
@@ -135,9 +120,6 @@ else std::cout
                 DebugOut(DebugOutputTreshold::Debug).write(ReadDataBuffer, bytes_transferred);
                 DebugOut(DebugOutputTreshold::Debug) << flush;
                 GotDataCallback();
-
-                if(HasUnFetchedXML)
-                    FetchDocument().release();
             }
             AsyncRead();
         }
@@ -169,36 +151,90 @@ else std::cout
         }
 
 
-        pugi::xml_node AsyncTCPXMLClient::SelectSingleXMLNode(const char* xpath)
+        class ExpatStructure
         {
-            return IncomingDocument->select_single_node(xpath).node();
+        public:
+            XML_Parser Parser;
+            string RootTagName;
+            long EndPosition;
+            int NrSubRootTagNamesFound;
+
+            ExpatStructure( XML_Parser Parser)
+                : Parser(Parser)
+            {
+                RootTagName = "";
+                EndPosition = 0;
+                NrSubRootTagNamesFound = 0;
+            }
+        };
+
+        void SAXStartElementHandler(void* data, const XML_Char* el, const XML_Char **atts)
+        {
+            ExpatStructure *ES = static_cast<ExpatStructure*>(data);
+            if( ES->EndPosition > 0 )
+                return;
+
+            string StrEl(el);
+            if(ES->RootTagName.length() == 0)
+                ES->RootTagName = StrEl;
+
+            if( ES->RootTagName == StrEl )
+                ES->NrSubRootTagNamesFound++;
         }
 
-        pugi::xpath_node_set AsyncTCPXMLClient::SelectXMLNodes(const char* xpath)
+        void SAXEndElementHandler(void* data, const XML_Char* el)
         {
-            return IncomingDocument->select_nodes(xpath);
+            ExpatStructure *ES = static_cast<ExpatStructure*>(data);
+            if( ES->EndPosition > 0 )
+                return;
+
+            string StrEl(el);
+            if(StrEl != ES->RootTagName )
+                return;
+
+            if( (--ES->NrSubRootTagNamesFound) == 0 )
+            {
+                ES->EndPosition = XML_GetCurrentByteIndex(ES->Parser) + XML_GetCurrentByteCount(ES->Parser);// StrEl.length();
+            }
         }
 
 
-
-        bool AsyncTCPXMLClient::LoadXML()
+        bool AsyncTCPXMLClient::InnerLoadXML()
         {
-            if(HasUnFetchedXML)
-                return true;
-
             string jox = ReadDataStream->str();
-            istringstream TStream(jox);
-            if( IncomingDocument == NULL)
-                IncomingDocument = new pugi::xml_document();
+            string CompleteXML;
+            XML_Parser p = XML_ParserCreate(NULL);
+            ExpatStructure ExpatData(p);
+
+            XML_SetUserData( p, &ExpatData );
+            XML_SetElementHandler(p, SAXStartElementHandler, SAXEndElementHandler);
+
+            XML_Parse(p, jox.c_str(), jox.length(), true);
+            XML_ParserFree(p);
+
+            if( ExpatData.EndPosition == 0 )
+            {
+                return false;
+            }
+
+            CompleteXML = jox.substr(0, ExpatData.EndPosition);
+            ReadDataStream->str(jox.substr(CompleteXML.length()));
+
+            istringstream TStream(CompleteXML);
+
+            pugi::xml_document *NewDoc = new pugi::xml_document();
 
             xml_parse_result parseresult =
-                    IncomingDocument->load(TStream, parse_full&~parse_eol, encoding_auto);
+                    NewDoc->load(TStream, parse_full&~parse_eol, encoding_auto);
 
             if(parseresult.status != xml_parse_status::status_ok)
+            {
+                delete NewDoc;
                 return false;
+            }
 
-            HasUnFetchedXML = true;
-
+            boost::unique_lock<boost::shared_mutex> Lock(IncomingDocumentsMutex);
+            IncomingDocuments.push(NewDoc);
             ClearReadDataStream();
 
             DebugOut(DebugOutputTreshold::Debug) << std::endl
@@ -207,6 +243,14 @@ else std::cout
             DebugOut(DebugOutputTreshold::Debug) << std::endl
                 << "------------------------------" << std::endl;
             return true;
+        }
+
+        void AsyncTCPXMLClient::LoadXML()
+        {
+            while(InnerLoadXML())
+            {
+                // Do nothing
+            }
         }
 
 
@@ -225,11 +269,11 @@ else std::cout
         {
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
-            
+
             boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
-            
+
             boost::system::error_code ec;
-            
+
             if(SSLConnection)
             {
                 /*
@@ -240,7 +284,7 @@ else std::cout
                                                         SharedData,
                                                         boost::asio::placeholders::error));
                                                         */
-                    
+
                 std::size_t written = boost::asio::write(*ssl_socket,boost::asio::buffer(Data),ec);
                 if( written != Data.size() || ec != boost::system::errc::success)
                 {
@@ -248,12 +292,12 @@ else std::cout
                     CurrentConnectionState = ConnectionState::Error;
                     std::cerr << "WriteTextToSocket: Got ssl socket error: "
                               << ec << " / " << ec.message() << std::endl;
-                    
-                    
+
+
                     ErrorCallback();
                 }
-                
-                
+
+
             }
             else
             {
@@ -266,7 +310,7 @@ else std::cout
                                                         SharedData,
                                                         boost::asio::placeholders::error));
                                                         */
-                
+
                 std::size_t written = boost::asio::write(*tcp_socket,boost::asio::buffer(Data),ec);
                 if( written != Data.size() || ec != boost::system::errc::success)
                 {
@@ -274,12 +318,12 @@ else std::cout
                     CurrentConnectionState = ConnectionState::Error;
                     std::cerr << "WriteTextToSocket: Got tcp socket error: "
                               << ec << " / " << ec.message() << std::endl;
-                    
-                    
+
+
                     ErrorCallback();
-                }                
-            }            
-            
+                }
+            }
+
             LastWrite = boost::posix_time::microsec_clock::local_time();
 
             DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
@@ -341,7 +385,7 @@ else std::cout
 
         void AsyncTCPXMLClient::SetKeepAliveByWhiteSpace(const std::string &DataToSend,
                                                          int TimeoutSeconds)
-        {            
+        {
             SendKeepAliveWhiteSpaceDataToSend = DataToSend;
             SendKeepAliveWhiteSpaceTimeeoutSeconds = TimeoutSeconds;
 
@@ -416,7 +460,7 @@ else std::cout
         void AsyncTCPXMLClient::HandleWrite(boost::asio::ip::tcp::socket *active_socket,
                                             std::shared_ptr<std::string> Data,
                                             const boost::system::error_code &error)
-        {            
+        {
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
 
@@ -424,21 +468,21 @@ else std::cout
                 return;
 
             if(active_socket != tcp_socket.get())
-                return;                                    
-            
+                return;
+
             if(error)
-            {                
+            {
                 SendKeepAliveWhitespaceTimer = nullptr;
                 CurrentConnectionState = ConnectionState::Error;
                 std::cerr << "Handlewrite: Got socket error: "
                           << error << " / " << error.message() << std::endl;
-                
-                
+
+
                 ErrorCallback();
 
                 return;
             }
-                       
+
             //DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
         }
 

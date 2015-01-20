@@ -28,8 +28,8 @@ else std::cout
 
     using namespace std;
     using namespace pugi;
-    
-    
+
+
     void Connection::BrodcastConnectionState(ConnectionCallback::ConnectionState NewState)
     {
         if(PreviouslyBroadcastedState == NewState)
@@ -67,10 +67,10 @@ else std::cout
     {
         string str = Client->ReadDataStream->str();
         size_t streamfeatures = str.find("</stream:features>");
-            
+
         if(streamfeatures == string::npos)
             return;
-            
+
         if(CurrentAuthenticationState == AuthenticationState::SASL)
         {
             Client->ClearReadDataStream();
@@ -84,16 +84,16 @@ else std::cout
             BindResource();
             return;
         }
-        
+
         // note to self: cant use loadxml() here because this is not valid xml!!!!
         // due to <stream> <stream::features></stream::features>
         xml_document xdoc;
         xdoc.load(*Client->ReadDataStream, parse_full&~parse_eol, encoding_auto);
-            
+
         Client->ClearReadDataStream();
 
         ostringstream o;
-            
+
         xdoc.save(o, "\t", format_no_declaration);
 
         pugi::xpath_node starttls = xdoc.select_single_node("//starttls");
@@ -112,7 +112,7 @@ else std::cout
             string mechanism = string(node.child_value());
             DebugOut(DebugOutputTreshold::Debug)
                 << "Mechanism supported: " << mechanism << std::endl;
-                
+
 
             if(mechanism == "DIGEST-MD5")
                 FeaturesSASL_DigestMD5 = true;
@@ -122,21 +122,21 @@ else std::cout
                 FeaturesSASL_ScramSHA1 = true;
             if(mechanism == "PLAIN")
                 FeaturesSASL_Plain = true;
-                
+
         }
-            
+
         CurrentConnectionState = ConnectionState::Authenticating;
-            
+
         // If start tls: initiate shit/restart stream
-            
+
         if(CurrentAuthenticationState != AuthenticationState::StartTLS)
         {
             if(FeaturesStartTLS)
             {
                 CurrentAuthenticationState = AuthenticationState::StartTLS;
-                    
+
                 DebugOut(DebugOutputTreshold::Debug) << "Initializing TLS" << std::endl;
-                    
+
                 stringstream Stream;
                 Stream << "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>";
                 Client->WriteTextToSocket(Stream.str());
@@ -144,11 +144,11 @@ else std::cout
             }
         }
         CurrentAuthenticationState = AuthenticationState::SASL;
-            
-            
+
+
         DebugOut(DebugOutputTreshold::Debug) << "SASL MANDLEBRASL" << std::endl;
         // I shall has picked an algorithm!
-        
+
         if(FeaturesSASL_ScramSHA1)
         {
             Authentication = new  SASL::SASL_Mechanism_SCRAM_SHA1 ( Client, MyJID, Password),
@@ -189,7 +189,7 @@ else std::cout
         }
 
     }
-        
+
     // Explicit string hax
     void Connection::CheckForStreamEnd()
     {
@@ -197,25 +197,22 @@ else std::cout
         size_t streamend = str.find("</stream:stream>");
         if(streamend == string::npos)
             streamend = str.find("</stream>");
-            
+
         if(streamend == string::npos)
             return;
-            
+
         Client->ClearReadDataStream();
 
         CurrentConnectionState = ConnectionState::ErrorUnknown;
 
         BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
-            
+
         DebugOut(DebugOutputTreshold::Debug) << "Got stream end" << std::endl;
     }
 
-    void Connection::CheckForTLSProceed()
+    void Connection::CheckForTLSProceed(pugi::xml_document* Doc)
     {
-        if(!Client->LoadXML())
-            return;
-
-        if(!Client->SelectSingleXMLNode("//proceed"))
+        if(!Doc->select_single_node("//proceed").node())
         {
             std::cerr << "No proceed tag; B0rked SSL?!";
 
@@ -227,13 +224,10 @@ else std::cout
         if(CurrentAuthenticationState == AuthenticationState::StartTLS)
             InitTLS();
     }
-        
-    void Connection::CheckForWaitingForSession()
-    {
-        if(!Client->LoadXML())
-            return;
 
-        xml_node iqnode = Client->SelectSingleXMLNode("//iq");
+    void Connection::CheckForWaitingForSession(pugi::xml_document* Doc)
+    {
+        xml_node iqnode = Doc->select_single_node("//iq").node();
 
         if(!iqnode)
         {
@@ -254,12 +248,9 @@ else std::cout
         DebugOut(DebugOutputTreshold::Debug) << std::endl << "ONLINE" << std::endl;
     }
 
-    void Connection::CheckForBindSuccess()
+    void Connection::CheckForBindSuccess(pugi::xml_document* Doc)
     {
-        if(!Client->LoadXML())
-            return;
-
-        xml_node iqnode = Client->SelectSingleXMLNode("//iq");
+        xml_node iqnode = Doc->select_single_node("//iq").node();
 
         if(!iqnode)
         {
@@ -269,18 +260,18 @@ else std::cout
 
             return;
         }
-            
+
         DebugOut(DebugOutputTreshold::Debug)
                 << std::endl
                 << "AUTHENTICATED"
                 << std::endl; // todo: verify xml ;)
-            
+
         string StartSession = "<iq type='set' id='1'><session xmlns='urn:ietf:params:xml:ns:xmpp-session'/></iq>";
         Client->WriteTextToSocket(StartSession);
         CurrentConnectionState = ConnectionState::WaitingForSession;
         CurrentAuthenticationState = AuthenticationState::Authenticated;
     }
-        
+
     void Connection::BindResource()
     {
         // TODO: Make Proper XML ?
@@ -300,16 +291,13 @@ else std::cout
         OpenXMPPStream();
     }
 
-    void Connection::CheckForSASLData()
+    void Connection::CheckForSASLData(pugi::xml_document* Doc)
     {
-        if(!Client->LoadXML())
-            return;
-
-        xml_node challenge = Client->SelectSingleXMLNode("//challenge");
-        xml_node success = Client->SelectSingleXMLNode("//success");
+        xml_node challenge = Doc->select_single_node("//challenge").node();
+        xml_node success = Doc->select_single_node("//success").node();
 
         if(!challenge && !success)
-        {           
+        {
             std::cerr << "Bad authentication." << std::endl;
             BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorAuthenticating);
             CurrentConnectionState = ConnectionState::ErrorAuthenticating;
@@ -342,33 +330,31 @@ else std::cout
         }
     }
 
-    void Connection::CheckStreamForAuthenticationData()
+    void Connection::CheckStreamForAuthenticationData(pugi::xml_document* Doc)
     {
         switch(CurrentAuthenticationState)
         {
             case AuthenticationState::StartTLS:
-                CheckForTLSProceed();
+                CheckForTLSProceed(Doc);
                 break;
             case AuthenticationState::SASL:
-                CheckForSASLData();
+                CheckForSASLData(Doc);
                 break;
             case AuthenticationState::Bind:
-                CheckForBindSuccess();
+                CheckForBindSuccess(Doc);
                 break;
             case AuthenticationState::Authenticated:
                 break;
         default:
             break;
         }
-        
-    }
-        
-    void Connection::CheckStreamForStanza()
-    {
-        if(!Client->LoadXML())
-            return;
 
-        xpath_node message = Client->SelectSingleXMLNode("//message");
+    }
+
+    void Connection::CheckStreamForStanza(pugi::xml_document* Doc)
+    {
+        xml_node message = Doc->select_single_node("//message").node();
+
         if(!message)
             return;
 
@@ -376,20 +362,18 @@ else std::cout
             StanzaHandler->StanzaReceived(
                         SharedStanza(
                             new Stanza(Client->FetchDocument(),
-                                       message.node())),
+                                       message)),
                         shared_from_this());
     }
 
-    void Connection::CheckForPresence()
+    void Connection::CheckForPresence(pugi::xml_document* Doc)
     {
-        if(!Client->LoadXML())
-            return;
+        xml_node presence = Doc->select_single_node("//presence").node();
 
-        xpath_node presence = Client->SelectSingleXMLNode("//presence");
         if(!presence)
             return;
 
-        Roster->OnPresence(presence.node());
+        Roster->OnPresence(presence);
     }
 
 
@@ -422,36 +406,50 @@ else std::cout
         Stanza->Message.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
 
         Client->WriteXMLToSocket(Stanza->Document.get());
-    }   
+    }
 
     void Connection::CheckStreamForValidXML()
     {
-        switch(CurrentConnectionState)
+        if(CurrentConnectionState == ConnectionState::WaitingForFeatures)
         {
-            case ConnectionState::WaitingForSession:
-                BrodcastConnectionState(ConnectionCallback::ConnectionState::Connecting);
-                CheckForWaitingForSession();
-                break;
-            case ConnectionState::WaitingForFeatures:
-                BrodcastConnectionState(ConnectionCallback::ConnectionState::Connecting);
-                CheckStreamForFeatures();
-                break;
-            case ConnectionState::Authenticating:
-                BrodcastConnectionState(ConnectionCallback::ConnectionState::Connecting);
-                CheckStreamForAuthenticationData();
-                break;
-            case ConnectionState::Connected:
-                BrodcastConnectionState(ConnectionCallback::ConnectionState::Connected);
-                CheckForPresence();
-                CheckStreamForStanza();
-                break;
-        default:
-            break;
+            BrodcastConnectionState(ConnectionCallback::ConnectionState::Connecting);
+            CheckStreamForFeatures();
+            return;
         }
-            
+
+        Client->LoadXML();
+        std::unique_ptr<pugi::xml_document> Doc;
+        do
+        {
+            Doc = Client->FetchDocument();
+            if(Doc == nullptr)
+                continue;
+
+            switch(CurrentConnectionState)
+            {
+                case ConnectionState::WaitingForSession:
+                    BrodcastConnectionState(ConnectionCallback::ConnectionState::Connecting);
+                    CheckForWaitingForSession(Doc.get());
+                    break;
+                case ConnectionState::WaitingForFeatures:
+                    break;
+                case ConnectionState::Authenticating:
+                    BrodcastConnectionState(ConnectionCallback::ConnectionState::Connecting);
+                    CheckStreamForAuthenticationData(Doc.get());
+                    break;
+                case ConnectionState::Connected:
+                    BrodcastConnectionState(ConnectionCallback::ConnectionState::Connected);
+                    CheckForPresence(Doc.get());
+                    CheckStreamForStanza(Doc.get());
+                    break;
+            default:
+                break;
+            }
+        }while(Doc != nullptr);
+
         CheckForStreamEnd();
     }
-        
+
     void Connection::Reset()
     {
         FeaturesSASL_CramMD5 = false;
@@ -460,13 +458,13 @@ else std::cout
         FeaturesSASL_ScramSHA1 = false;
         FeaturesStartTLS = false;
         CurrentAuthenticationState = AuthenticationState::None;
-        
+
         if(Authentication != nullptr)
         {
             Authentication = nullptr;
             delete Authentication;
         }
-        
+
     }
 
     void Connection::Reconnect()
@@ -474,7 +472,7 @@ else std::cout
         Reset();
         Connect();
     }
-    
+
     Connection::Connection(const std::string &Hostname,
         int Portnumber,
         const JID &RequestedJID,
@@ -496,12 +494,12 @@ else std::cout
         CurrentAuthenticationState(AuthenticationState::None),
         Hostname(Hostname),
         Password(Password),
-        Portnumber(Portnumber),        
+        Portnumber(Portnumber),
         MyJID(RequestedJID),
         Verification(Verification),
         VerificationMode(VerificationMode),
         Authentication(nullptr)
-    {        
+    {
         Roster = new RosterMaintaner (Client,
                PresenceHandler,
                SubscribeHandler,
@@ -529,8 +527,8 @@ else std::cout
             IOThread->join();
         }
 
-        io_service.reset( new boost::asio::io_service() );       
-        
+        io_service.reset( new boost::asio::io_service() );
+
         Client.reset(
                     new Network::AsyncTCPXMLClient (
                         io_service,
@@ -540,9 +538,9 @@ else std::cout
                         boost::bind(&Connection::ClientDisconnected, this),
                         boost::bind(&Connection::ClientGotData, this),
                         DebugTreshold ) );
-        
-       
-        PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;        
+
+
+        PreviouslyBroadcastedState = ConnectionCallback::ConnectionState::Connecting;
         //Client->Reset();
         if( !Client->ConnectSocket() )
         {
@@ -554,7 +552,7 @@ else std::cout
         OpenXMPPStream();
         Client->AsyncRead();
         Roster->ResetClient(Client);
-        
+
         // Fork io
         IOThread.reset(
                     new boost::thread(boost::bind(
@@ -567,7 +565,7 @@ else std::cout
         if( Authentication != nullptr )
             delete Authentication;
         delete Roster;
-        
+
         DebugOut(DebugOutputTreshold::Debug) << "~Connection"  << std::endl;
     }
 

@@ -78,17 +78,17 @@ namespace DXMPP
         bool FeaturesSASL_DigestMD5;
         bool FeaturesSASL_CramMD5;
         bool FeaturesSASL_ScramSHA1;
-        bool FeaturesSASL_Plain;        
+        bool FeaturesSASL_Plain;
         bool FeaturesStartTLS;
-        
+
         ConnectionState CurrentConnectionState;
         AuthenticationState CurrentAuthenticationState;
-                
+
         std::string Hostname;
         std::string Password;
         int Portnumber;
         JID MyJID;
-        
+
 
         TLSVerification *Verification;
         TLSVerificationMode VerificationMode;
@@ -102,13 +102,13 @@ namespace DXMPP
         void ClearReadDataStream();
 
         // who vomited?
-        void CheckForTLSProceed();
-        void CheckForWaitingForSession();
-        void CheckForBindSuccess();
-        void CheckForSASLData();
-        void CheckStreamForAuthenticationData();
-        void CheckStreamForStanza();
-        void CheckForPresence();
+        void CheckForTLSProceed(pugi::xml_document *Doc);
+        void CheckForWaitingForSession(pugi::xml_document *Doc);
+        void CheckForBindSuccess(pugi::xml_document *Doc);
+        void CheckForSASLData(pugi::xml_document *Doc);
+        void CheckStreamForAuthenticationData(pugi::xml_document *Doc);
+        void CheckStreamForStanza(pugi::xml_document *Doc);
+        void CheckForPresence(pugi::xml_document *Doc);
 
         // this is ok (invalid xml)
         void CheckForStreamEnd();
@@ -120,7 +120,7 @@ namespace DXMPP
         void StartBind();
 
         void ClientDisconnected();
-        void ClientGotData();        
+        void ClientGotData();
 
         void BrodcastConnectionState(ConnectionCallback::ConnectionState NewState);
 
@@ -145,7 +145,7 @@ namespace DXMPP
 
         SharedStanza CreateStanza(const JID &Target);
         void SendStanza(SharedStanza Stanza);
-        
+
         static SharedConnection Create(const std::string &Hostname,
                                        int Portnumber,
                                        const JID &RequestedJID,
