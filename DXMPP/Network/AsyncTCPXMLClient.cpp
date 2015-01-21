@@ -88,6 +88,8 @@ else std::cout
                 const boost::system::error_code& error,
                 std::size_t bytes_transferred)
         {
+            boost::unique_lock<boost::shared_mutex> UniqueLock(ReadMutex);
+
             if (error == boost::system::errc::operation_canceled)
                 return;
 
