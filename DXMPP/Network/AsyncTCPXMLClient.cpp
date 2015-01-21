@@ -256,11 +256,14 @@ else std::cout
 
         void AsyncTCPXMLClient::WriteXMLToSocket(xml_document *Doc)
         {
+
             stringstream ss;
             Doc->save(ss, "\t", format_no_declaration);
 
             if(! (DebugOutputTreshold::Debug > DebugTreshold))
                 Doc->save(std::cout, "\t", format_no_declaration);
+
+            boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
             WriteTextToSocket(ss.str());
         }
 
@@ -269,8 +272,6 @@ else std::cout
         {
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
-
-            boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
 
             boost::system::error_code ec;
 
@@ -367,13 +368,12 @@ else std::cout
             if( SendKeepAliveWhitespaceTimer == nullptr )
                 return;
 
-            {
-                boost::shared_lock<boost::shared_mutex> ReadLock(this->WriteMutex);
-                if( LastWrite >
-                        (boost::posix_time::microsec_clock::local_time() - boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) )
-                   )
-                    return;
-            }
+            boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
+            if( LastWrite >
+                    (boost::posix_time::microsec_clock::local_time() - boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) )
+               )
+                return;
+
             WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
             SendKeepAliveWhitespaceTimer->expires_from_now (
                         boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
