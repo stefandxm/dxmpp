@@ -60,6 +60,7 @@ namespace DXMPP
             std::string SendKeepAliveWhiteSpaceDataToSend;
             int SendKeepAliveWhiteSpaceTimeeoutSeconds;
 
+            boost::shared_mutex ReadMutex;
             boost::shared_mutex WriteMutex;
             boost::posix_time::ptime LastWrite;
 
