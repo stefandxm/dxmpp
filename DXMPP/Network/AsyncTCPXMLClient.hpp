@@ -60,12 +60,15 @@ namespace DXMPP
             std::string SendKeepAliveWhiteSpaceDataToSend;
             int SendKeepAliveWhiteSpaceTimeeoutSeconds;
 
-            boost::shared_mutex ReadMutex;
-            boost::shared_mutex WriteMutex;
+            boost::asio::strand SynchronizationStrand;
+
+            //boost::shared_mutex ReadMutex;
+            //boost::shared_mutex WriteMutex;
             boost::posix_time::ptime LastWrite;
 
             boost::shared_mutex IncomingDocumentsMutex;
             std::queue<pugi::xml_document*> IncomingDocuments;
+
 
         public:
 
@@ -98,10 +101,11 @@ namespace DXMPP
 
 
             void SetKeepAliveByWhiteSpace(const std::string &DataToSend,
-                                          int TimeoutSeconds = 30);
+                                          int TimeoutSeconds = 5);
             bool EnsureTCPKeepAlive();
             bool ConnectTLSSocket();
             bool ConnectSocket();
+            void AsyncRead();
 
             bool VerifyCertificate(bool preverified,
                                     boost::asio::ssl::verify_context& ctx);
@@ -114,7 +118,6 @@ namespace DXMPP
                             char *ActiveDataBuffer,
                             const boost::system::error_code &error,
                             std::size_t bytes_transferred);
-            void AsyncRead();
 
 
             bool InnerLoadXML();
@@ -151,6 +154,7 @@ namespace DXMPP
                   DebugTreshold(DebugTreshold),
                   SSLBuffer( boost::asio::buffer(ReadDataBufferSSL, ReadDataBufferSize) ),
                   NonSSLBuffer( boost::asio::buffer(ReadDataBufferNonSSL, ReadDataBufferSize) ),
+                  SynchronizationStrand(*IOService),
                   ErrorCallback(ErrorCallback),
                   GotDataCallback(GotDataCallback)
 

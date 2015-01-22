@@ -88,16 +88,12 @@ else std::cout
                 const boost::system::error_code& error,
                 std::size_t bytes_transferred)
         {
-            boost::unique_lock<boost::shared_mutex> UniqueLock(ReadMutex);
-
             if (error == boost::system::errc::operation_canceled)
                 return;
 
             if( CurrentConnectionState != ConnectionState::Connected )
                 return;
 
-            if( active_socket != tcp_socket.get() )
-                return;
 
             ReadDataBuffer = ActiveBuffer;
 
@@ -108,17 +104,19 @@ else std::cout
 
             if(error)
             {
-                CurrentConnectionState = ConnectionState::Error;
-                SendKeepAliveWhitespaceTimer = nullptr;
                 std::cerr << "HandleRead: Got socket error: " << error
                           << " / " << error.message() << std::endl;
+                CurrentConnectionState = ConnectionState::Error;
+                SendKeepAliveWhitespaceTimer = nullptr;
                 ErrorCallback();
                 return;
             }
 
             if( bytes_transferred > 0 )
             {
-                ReadDataStream->write(ReadDataBuffer, bytes_transferred);
+                std::stringstream TStream;
+                TStream.write(ReadDataBuffer, bytes_transferred);
+                ReadDataStream->str(ReadDataStream->str() + TStream.str());
                 DebugOut(DebugOutputTreshold::Debug).write(ReadDataBuffer, bytes_transferred);
                 DebugOut(DebugOutputTreshold::Debug) << flush;
                 GotDataCallback();
@@ -130,25 +128,33 @@ else std::cout
         {
             if(SSLConnection)
             {
-                boost::asio::async_read(*ssl_socket, SSLBuffer,
-                                        boost::asio::transfer_at_least(1),
-                                        boost::bind(&AsyncTCPXMLClient::HandleRead,
-                                                    this,
-                                                    tcp_socket.get(),
-                                                    ReadDataBufferSSL,
-                                                    boost::asio::placeholders::error,
-                                                    boost::asio::placeholders::bytes_transferred));
+
+                SynchronizationStrand.post([&, this]
+                {
+                    boost::asio::async_read(*ssl_socket, SSLBuffer,
+                                            boost::asio::transfer_at_least(1),
+                                            SynchronizationStrand.wrap(
+                                                boost::bind(&AsyncTCPXMLClient::HandleRead,
+                                                            this,
+                                                            tcp_socket.get(),
+                                                            ReadDataBufferSSL,
+                                                            boost::asio::placeholders::error,
+                                                            boost::asio::placeholders::bytes_transferred)
+                                                ));
+                });
             }
             else
             {
                 boost::asio::async_read(*tcp_socket, NonSSLBuffer,
                                         boost::asio::transfer_at_least(1),
-                                        boost::bind(&AsyncTCPXMLClient::HandleRead,
-                                                    this,
-                                                    tcp_socket.get(),
-                                                    ReadDataBufferNonSSL,
-                                                    boost::asio::placeholders::error,
-                                                    boost::asio::placeholders::bytes_transferred));
+                                        SynchronizationStrand.wrap(
+                                            boost::bind(&AsyncTCPXMLClient::HandleRead,
+                                                        this,
+                                                        tcp_socket.get(),
+                                                        ReadDataBufferNonSSL,
+                                                        boost::asio::placeholders::error,
+                                                        boost::asio::placeholders::bytes_transferred)
+                                            ));
             }
         }
 
@@ -159,7 +165,7 @@ else std::cout
             XML_Parser Parser;
             string RootTagName;
             long EndPosition;
-            int NrSubRootTagNamesFound;
+            int  NrSubRootTagNamesFound;
 
             ExpatStructure( XML_Parser Parser)
                 : Parser(Parser)
@@ -196,7 +202,7 @@ else std::cout
 
             if( (--ES->NrSubRootTagNamesFound) == 0 )
             {
-                ES->EndPosition = XML_GetCurrentByteIndex(ES->Parser) + XML_GetCurrentByteCount(ES->Parser);// StrEl.length();
+                ES->EndPosition = XML_GetCurrentByteIndex(ES->Parser) + XML_GetCurrentByteCount(ES->Parser);
             }
         }
 
@@ -204,6 +210,10 @@ else std::cout
         bool AsyncTCPXMLClient::InnerLoadXML()
         {
             string jox = ReadDataStream->str();
+
+            if(jox.empty())
+                return false;
+
             string CompleteXML;
             XML_Parser p = XML_ParserCreate(NULL);
             ExpatStructure ExpatData(p);
@@ -216,11 +226,14 @@ else std::cout
 
             if( ExpatData.EndPosition == 0 )
             {
+                //std::cerr << "incomplete: " << jox << std::endl;
                 return false;
             }
 
             CompleteXML = jox.substr(0, ExpatData.EndPosition);
-            ReadDataStream->str(jox.substr(CompleteXML.length()));
+            string NewXML = jox.substr(CompleteXML.length());
+            //std::cout << "new xml:" << endl << "#" << NewXML <<  "#" << endl;
+            ReadDataStream->str(NewXML);
 
             istringstream TStream(CompleteXML);
 
@@ -231,17 +244,17 @@ else std::cout
 
             if(parseresult.status != xml_parse_status::status_ok)
             {
+                std::cerr << "Failed to parse xml: " << CompleteXML << std::endl;
                 delete NewDoc;
-                return false;
+                return true;
             }
 
             boost::unique_lock<boost::shared_mutex> Lock(IncomingDocumentsMutex);
             IncomingDocuments.push(NewDoc);
-            ClearReadDataStream();
 
             DebugOut(DebugOutputTreshold::Debug) << std::endl
                 << "++++++++++++++++++++++++++++++" << std::endl;
-            DebugOut(DebugOutputTreshold::Debug) << jox;
+            DebugOut(DebugOutputTreshold::Debug) << CompleteXML;
             DebugOut(DebugOutputTreshold::Debug) << std::endl
                 << "------------------------------" << std::endl;
             return true;
@@ -249,10 +262,16 @@ else std::cout
 
         void AsyncTCPXMLClient::LoadXML()
         {
+            if( ReadDataStream->str().empty() )
+                return;
+
+  //          std::cout << "+++before inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---before inner load xmls" <<std::endl;
+
             while(InnerLoadXML())
             {
                 // Do nothing
             }
+//            std::cout << "+++after inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---after inner load xmls" <<std::endl;
         }
 
 
@@ -265,9 +284,10 @@ else std::cout
             if(! (DebugOutputTreshold::Debug > DebugTreshold))
                 Doc->save(std::cout, "\t", format_no_declaration);
 
-            boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
+            //boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
             WriteTextToSocket(ss.str());
         }
+
 
 
         void AsyncTCPXMLClient::WriteTextToSocket(const string &Data)
@@ -277,17 +297,23 @@ else std::cout
 
             boost::system::error_code ec;
 
+            std::shared_ptr<std::string> SharedData (new std::string(Data));
+
             if(SSLConnection)
             {
-                /*
-                boost::asio::async_write(*ssl_socket, boost::asio::buffer(*SharedData),
-                                            boost::bind(&AsyncTCPXMLClient::HandleWrite,
-                                                        this,
-                                                        tcp_socket.get(),
-                                                        SharedData,
-                                                        boost::asio::placeholders::error));
-                                                        */
+                SynchronizationStrand.post([&,SharedData, this]
+                {
+                    boost::asio::async_write(*ssl_socket, boost::asio::buffer(*SharedData),
+                                             SynchronizationStrand.wrap(
+                                                boost::bind(&AsyncTCPXMLClient::HandleWrite,
+                                                            this,
+                                                            tcp_socket.get(),
+                                                            SharedData,
+                                                            boost::asio::placeholders::error)
+                                                 ));
+                });
 
+                /*
                 std::size_t written = boost::asio::write(*ssl_socket,boost::asio::buffer(Data),ec);
                 if( written != Data.size() || ec != boost::system::errc::success)
                 {
@@ -298,22 +324,24 @@ else std::cout
 
 
                     ErrorCallback();
-                }
+                }*/
 
 
             }
             else
             {
-                /*
+
                 std::shared_ptr<std::string> SharedData = std::make_shared<std::string>(Data);
                 boost::asio::async_write(*tcp_socket, boost::asio::buffer(*SharedData),
+                                         SynchronizationStrand.wrap(
                                             boost::bind(&AsyncTCPXMLClient::HandleWrite,
                                                         this,
                                                         tcp_socket.get(),
                                                         SharedData,
-                                                        boost::asio::placeholders::error));
-                                                        */
+                                                        boost::asio::placeholders::error)
+                                             ));
 
+            /*
                 std::size_t written = boost::asio::write(*tcp_socket,boost::asio::buffer(Data),ec);
                 if( written != Data.size() || ec != boost::system::errc::success)
                 {
@@ -324,7 +352,7 @@ else std::cout
 
 
                     ErrorCallback();
-                }
+                }*/
             }
 
             LastWrite = boost::posix_time::microsec_clock::local_time();
@@ -370,19 +398,22 @@ else std::cout
             if( SendKeepAliveWhitespaceTimer == nullptr )
                 return;
 
-            boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
+            //boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
             if( LastWrite >
                     (boost::posix_time::microsec_clock::local_time() - boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) )
                )
+            {
+                SendKeepAliveWhitespaceTimer->expires_from_now (
+                            boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
+                SendKeepAliveWhitespaceTimer->async_wait(
+                            boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
+                                        this)
+                            );
+
                 return;
+            }
 
             WriteTextToSocket(SendKeepAliveWhiteSpaceDataToSend);
-            SendKeepAliveWhitespaceTimer->expires_from_now (
-                        boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) );
-            SendKeepAliveWhitespaceTimer->async_wait(
-                        boost::bind(&AsyncTCPXMLClient::SendKeepAliveWhitespace,
-                                    this)
-                        );
         }
 
         void AsyncTCPXMLClient::SetKeepAliveByWhiteSpace(const std::string &DataToSend,
@@ -469,16 +500,14 @@ else std::cout
             if (error == boost::system::errc::operation_canceled)
                 return;
 
-            if(active_socket != tcp_socket.get())
-                return;
 
             if(error)
             {
-                SendKeepAliveWhitespaceTimer = nullptr;
-                CurrentConnectionState = ConnectionState::Error;
                 std::cerr << "Handlewrite: Got socket error: "
                           << error << " / " << error.message() << std::endl;
 
+                SendKeepAliveWhitespaceTimer = nullptr;
+                CurrentConnectionState = ConnectionState::Error;
 
                 ErrorCallback();
 

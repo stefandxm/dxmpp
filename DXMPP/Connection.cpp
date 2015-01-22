@@ -201,10 +201,10 @@ else std::cout
         if(streamend == string::npos)
             return;
 
+        std::cerr << "Got end of stream from xmppserver" << std::endl;
         Client->ClearReadDataStream();
 
         CurrentConnectionState = ConnectionState::ErrorUnknown;
-
         BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
 
         DebugOut(DebugOutputTreshold::Debug) << "Got stream end" << std::endl;
@@ -419,11 +419,14 @@ else std::cout
 
         Client->LoadXML();
         std::unique_ptr<pugi::xml_document> Doc;
+        int NrFetched = 0;
         do
         {
             Doc = Client->FetchDocument();
             if(Doc == nullptr)
                 continue;
+
+            NrFetched++;
 
             switch(CurrentConnectionState)
             {
@@ -445,6 +448,7 @@ else std::cout
             default:
                 break;
             }
+
         }while(Doc != nullptr);
 
         CheckForStreamEnd();
@@ -639,6 +643,7 @@ else std::cout
 
     void Connection::ClientDisconnected()
     {
+        std::cerr << "Client disconnected." << std::endl;
         CurrentConnectionState  = ConnectionState::ErrorUnknown;
         BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
     }
