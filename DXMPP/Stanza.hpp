@@ -42,6 +42,7 @@ namespace DXMPP {
         Stanza(std::unique_ptr<pugi::xml_document> Document, pugi::xml_node Message)
             :Document( std::move(Document) ), Message(Message)
         {
+            ID = std::string(Message.attribute("id").value());
             To = JID(Message.attribute("to").value());
             From = JID(Message.attribute("from").value());
 
