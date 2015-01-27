@@ -42,7 +42,7 @@ namespace DXMPP {
         Stanza(std::unique_ptr<pugi::xml_document> Document, pugi::xml_node Message)
             :Document( std::move(Document) ), Message(Message)
         {
-            To = JID(Message.attribute("from").value());
+            To = JID(Message.attribute("to").value());
             From = JID(Message.attribute("from").value());
 
             if( std::string(Message.attribute("type").value()) == "error")
@@ -55,7 +55,7 @@ namespace DXMPP {
             :Type(StanzaType::Chat)
         {
             Document.reset(new pugi::xml_document());
-            
+
             Message = Document->append_child("message");
             Message.append_attribute("from");
             Message.append_attribute("to");
@@ -69,7 +69,7 @@ namespace DXMPP {
 
             Message.attribute("id").set_value( ID.c_str() );
         }
-        
+
         ~Stanza()
         {
         }
