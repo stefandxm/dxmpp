@@ -244,7 +244,7 @@ else std::cout
 
         Client->WriteTextToSocket(Presence);
         CurrentConnectionState = ConnectionState::Connected;
-        Client->SetKeepAliveByWhiteSpace(string(" "), 1);
+        Client->SetKeepAliveByWhiteSpace(string(" "), 5);
         DebugOut(DebugOutputTreshold::Debug) << std::endl << "ONLINE" << std::endl;
     }
 
