@@ -33,7 +33,7 @@ namespace DXMPP
 
         Uplink->WriteXMLToSocket(&doc);
 
-        if(SubscribeResponse != SubscribeCallback::Response::Allow)
+        if(SubscribeResponse == SubscribeCallback::Response::Allow)
             return;
 
         Subscribe(From);
