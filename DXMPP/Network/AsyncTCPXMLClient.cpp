@@ -162,13 +162,16 @@ else std::cout
         class ExpatStructure
         {
         public:
+            AsyncTCPXMLClient * Sender;
             XML_Parser Parser;
             string RootTagName;
             long EndPosition;
             int  NrSubRootTagNamesFound;
 
-            ExpatStructure( XML_Parser Parser)
-                : Parser(Parser)
+            ExpatStructure( AsyncTCPXMLClient *Sender, XML_Parser Parser)
+                : 
+                  Sender(Sender), 
+                  Parser(Parser)
             {
                 RootTagName = "";
                 EndPosition = 0;
@@ -190,6 +193,12 @@ else std::cout
                 ES->NrSubRootTagNamesFound++;
         }
 
+        void AsyncTCPXMLClient::SignalError()
+        {
+            CurrentConnectionState = ConnectionState::Error;
+            ErrorCallback();
+        }
+        
         void SAXEndElementHandler(void* data, const XML_Char* el)
         {
             ExpatStructure *ES = static_cast<ExpatStructure*>(data);
@@ -197,6 +206,14 @@ else std::cout
                 return;
 
             string StrEl(el);
+            
+            if(StrEl == string("</stream:stream>"))
+            {
+                std::cerr << "Received end of stream" << std::endl;
+                ES->Sender->SignalError();
+                return;
+            }
+            
             if(StrEl != ES->RootTagName )
                 return;
 
@@ -216,7 +233,7 @@ else std::cout
 
             string CompleteXML;
             XML_Parser p = XML_ParserCreate(NULL);
-            ExpatStructure ExpatData(p);
+            ExpatStructure ExpatData(this, p);
 
             XML_SetUserData( p, &ExpatData );
             XML_SetElementHandler(p, SAXStartElementHandler, SAXEndElementHandler);

@@ -68,10 +68,12 @@ namespace DXMPP
 
             boost::shared_mutex IncomingDocumentsMutex;
             std::queue<pugi::xml_document*> IncomingDocuments;
-
+            
+             
 
         public:
 
+            void SignalError();
             std::stringstream *ReadDataStream;
             char * ReadDataBuffer;
 
