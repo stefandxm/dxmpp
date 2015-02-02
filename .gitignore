@@ -32,7 +32,7 @@ Makefile
 *.app
 
 # Pugi XML
-#pugixml/*
+pugixml/*
 
 #qt creator stuff
 *.user
