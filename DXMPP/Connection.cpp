@@ -351,17 +351,23 @@ else std::cout
 
     }
 
-    void Connection::CheckStreamForStanza(pugi::xml_document* Doc)
+    bool Connection::CheckStreamForStanza(pugi::xml_document* Doc)
     {
         xml_node message = Doc->select_single_node("//message").node();
 
         if(!message)
-            return;
+            return false;
 
+        return true;
+    }
+
+    void Connection::DispatchStanza(std::unique_ptr<pugi::xml_document> Doc)
+    {
+        xml_node message = Doc->select_single_node("//message").node();
         if(StanzaHandler)
             StanzaHandler->StanzaReceived(
                         SharedStanza(
-                            new Stanza(Client->FetchDocument(),
+                            new Stanza( std::move(Doc),
                                        message)),
                         shared_from_this());
     }
@@ -424,7 +430,7 @@ else std::cout
         {
             Doc = Client->FetchDocument();
             if(Doc == nullptr)
-                continue;
+                break;
 
             NrFetched++;
 
@@ -443,13 +449,16 @@ else std::cout
                 case ConnectionState::Connected:
                     BrodcastConnectionState(ConnectionCallback::ConnectionState::Connected);
                     CheckForPresence(Doc.get());
-                    CheckStreamForStanza(Doc.get());
+                    if(CheckStreamForStanza(Doc.get()))
+                    {
+                        DispatchStanza(std::move(Doc));
+                    }
                     break;
             default:
                 break;
             }
 
-        }while(Doc != nullptr);
+        }while(true);
 
         CheckForStreamEnd();
     }

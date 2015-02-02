@@ -282,13 +282,13 @@ else std::cout
             if( ReadDataStream->str().empty() )
                 return;
 
-  //          std::cout << "+++before inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---before inner load xmls" <<std::endl;
+            //std::cout << "+++before inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---before inner load xmls" <<std::endl;
 
             while(InnerLoadXML())
             {
                 // Do nothing
             }
-//            std::cout << "+++after inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---after inner load xmls" <<std::endl;
+            //std::cout << "+++after inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---after inner load xmls" <<std::endl;
         }
 
 

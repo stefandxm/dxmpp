@@ -107,7 +107,8 @@ namespace DXMPP
         void CheckForBindSuccess(pugi::xml_document *Doc);
         void CheckForSASLData(pugi::xml_document *Doc);
         void CheckStreamForAuthenticationData(pugi::xml_document *Doc);
-        void CheckStreamForStanza(pugi::xml_document *Doc);
+        bool CheckStreamForStanza(pugi::xml_document *Doc);
+        void DispatchStanza( std::unique_ptr< pugi::xml_document> Doc);
         void CheckForPresence(pugi::xml_document *Doc);
 
         // this is ok (invalid xml)
