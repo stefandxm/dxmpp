@@ -372,7 +372,7 @@ else std::cout
                 }*/
             }
 
-            LastWrite = boost::posix_time::microsec_clock::local_time();
+            LastWrite = boost::posix_time::microsec_clock::universal_time();
 
             DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
                 std::endl << Data << std::endl;
@@ -417,7 +417,7 @@ else std::cout
 
             //boost::unique_lock<boost::shared_mutex> WriteLock(this->WriteMutex);
             if( LastWrite >
-                    (boost::posix_time::microsec_clock::local_time() - boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) )
+                    (boost::posix_time::microsec_clock::universal_time() - boost::posix_time::seconds(SendKeepAliveWhiteSpaceTimeeoutSeconds) )
                )
             {
                 SendKeepAliveWhitespaceTimer->expires_from_now (
