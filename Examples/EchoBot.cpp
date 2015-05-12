@@ -92,7 +92,7 @@ int main(int, const char **)
     while(!Handler.Quit)
     {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-    }   
+    }
 
     return 0;
 }

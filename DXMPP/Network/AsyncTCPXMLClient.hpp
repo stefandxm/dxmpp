@@ -68,10 +68,16 @@ namespace DXMPP
 
             boost::shared_mutex IncomingDocumentsMutex;
             std::queue<pugi::xml_document*> IncomingDocuments;
-            
-             
+
+            std::queue<std::shared_ptr<std::string>> OutgoingData;
+            boost::shared_mutex OutgoingDataMutex;
+            bool Flushing;
+
+            void FlushOutgoingDataUnsafe();
 
         public:
+
+            void FlushOutgoingData();
 
             void SignalError();
             std::stringstream *ReadDataStream;
@@ -164,6 +170,7 @@ namespace DXMPP
                 this->io_service = IOService;
                 this->Hostname = Hostname;
                 this->Portnumber = Portnumber;
+                Flushing = false;
             }
         };
     }

@@ -169,8 +169,8 @@ else std::cout
             int  NrSubRootTagNamesFound;
 
             ExpatStructure( AsyncTCPXMLClient *Sender, XML_Parser Parser)
-                : 
-                  Sender(Sender), 
+                :
+                  Sender(Sender),
                   Parser(Parser)
             {
                 RootTagName = "";
@@ -198,7 +198,7 @@ else std::cout
             CurrentConnectionState = ConnectionState::Error;
             ErrorCallback();
         }
-        
+
         void SAXEndElementHandler(void* data, const XML_Char* el)
         {
             ExpatStructure *ES = static_cast<ExpatStructure*>(data);
@@ -206,14 +206,14 @@ else std::cout
                 return;
 
             string StrEl(el);
-            
+
             if(StrEl == string("</stream:stream>"))
             {
                 std::cerr << "Received end of stream" << std::endl;
                 ES->Sender->SignalError();
                 return;
             }
-            
+
             if(StrEl != ES->RootTagName )
                 return;
 
@@ -306,16 +306,23 @@ else std::cout
         }
 
 
-
-        void AsyncTCPXMLClient::WriteTextToSocket(const string &Data)
+        void AsyncTCPXMLClient::FlushOutgoingDataUnsafe()
         {
-            if( CurrentConnectionState != ConnectionState::Connected )
+            if(OutgoingData.empty())
+            {
+                Flushing = false;
                 return;
+            }
+
+            Flushing = true;
+
+            std::shared_ptr<std::string> SharedData = OutgoingData.front();
+            OutgoingData.pop();
+
+            if(OutgoingData.empty())
+                Flushing = false;
 
             boost::system::error_code ec;
-
-            std::shared_ptr<std::string> SharedData (new std::string(Data));
-
             if(SSLConnection)
             {
                 SynchronizationStrand.post([&,SharedData, this]
@@ -342,13 +349,9 @@ else std::cout
 
                     ErrorCallback();
                 }*/
-
-
             }
             else
             {
-
-                std::shared_ptr<std::string> SharedData = std::make_shared<std::string>(Data);
                 boost::asio::async_write(*tcp_socket, boost::asio::buffer(*SharedData),
                                          SynchronizationStrand.wrap(
                                             boost::bind(&AsyncTCPXMLClient::HandleWrite,
@@ -375,7 +378,36 @@ else std::cout
             LastWrite = boost::posix_time::microsec_clock::universal_time();
 
             DebugOut(DebugOutputTreshold::Debug) << "Write text to socket:" <<
-                std::endl << Data << std::endl;
+                std::endl << "+++" << std::endl << *SharedData << std::endl << " --- " << std::endl;
+        }
+
+        void AsyncTCPXMLClient::FlushOutgoingData()
+        {
+            boost::unique_lock<boost::shared_mutex> WriteLock(OutgoingDataMutex);
+
+            if(Flushing)
+                return;
+
+            FlushOutgoingDataUnsafe();
+        }
+
+
+        void AsyncTCPXMLClient::WriteTextToSocket(const string &Data)
+        {
+            if( CurrentConnectionState != ConnectionState::Connected )
+                return;
+
+            {
+                boost::unique_lock<boost::shared_mutex> WriteLock(OutgoingDataMutex);
+                std::shared_ptr<std::string> SharedData (new std::string(Data));
+                OutgoingData.push( SharedData );
+
+                if(!Flushing)
+                    FlushOutgoingDataUnsafe();  /* we have lock */
+            }
+
+
+            return;
         }
 
         bool AsyncTCPXMLClient::EnsureTCPKeepAlive()
@@ -530,6 +562,8 @@ else std::cout
 
                 return;
             }
+
+            FlushOutgoingData();
 
             //DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
         }
