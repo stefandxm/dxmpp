@@ -560,11 +560,13 @@ else std::cout
             {
                 boost::unique_lock<boost::shared_mutex> WriteLock(OutgoingDataMutex);
                 if(OutgoingData.empty())
+                {
                     Flushing = false;
+                    return;
+                }
+
+                FlushOutgoingDataUnsafe();
             }
-
-
-            FlushOutgoingData();
 
             //DebugOut(DebugOutputTreshold::Debug) << "Got ack for " << *Data << std::endl;
         }
