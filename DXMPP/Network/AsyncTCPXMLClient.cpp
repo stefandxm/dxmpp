@@ -309,18 +309,12 @@ else std::cout
         void AsyncTCPXMLClient::FlushOutgoingDataUnsafe()
         {
             if(OutgoingData.empty())
-            {
-                Flushing = false;
                 return;
-            }
 
             Flushing = true;
 
             std::shared_ptr<std::string> SharedData = OutgoingData.front();
             OutgoingData.pop();
-
-            if(OutgoingData.empty())
-                Flushing = false;
 
             boost::system::error_code ec;
             if(SSLConnection)
@@ -562,6 +556,13 @@ else std::cout
 
                 return;
             }
+
+            {
+                boost::unique_lock<boost::shared_mutex> WriteLock(OutgoingDataMutex);
+                if(OutgoingData.empty())
+                    Flushing = false;
+            }
+
 
             FlushOutgoingData();
 
