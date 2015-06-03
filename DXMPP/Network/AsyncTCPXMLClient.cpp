@@ -286,8 +286,28 @@ else std::cout
 
             while(InnerLoadXML())
             {
-                // Do nothing
             }
+
+            //std::cout << "+++after inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---after inner load xmls" <<std::endl;
+        }
+
+        bool AsyncTCPXMLClient::LoadXML(int Iteration)
+        {
+            if( Iteration == 0 && ReadDataStream->str().empty() )
+                return false;
+
+            //std::cout << "+++before inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---before inner load xmls" <<std::endl;
+
+            /*int NrLoaded = 0;
+            while(InnerLoadXML() && (++NrLoaded) < 5)
+            {
+                NrLoaded++;
+                if(NrLoaded > 5)
+                    return;
+                // Do nothing
+            }*/
+
+            return InnerLoadXML();
             //std::cout << "+++after inner load xmls: "<<std::endl << ReadDataStream->str() << std::endl  << "---after inner load xmls" <<std::endl;
         }
 
@@ -573,6 +593,7 @@ else std::cout
 
         bool AsyncTCPXMLClient::ConnectTLSSocket()
         {
+            ReadDataStream->str("");
             this->CurrentConnectionState = ConnectionState::Upgrading;
 
             //tcp_socket->cancel();

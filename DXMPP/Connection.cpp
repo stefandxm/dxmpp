@@ -423,11 +423,17 @@ else std::cout
             return;
         }
 
-        Client->LoadXML();
+
         std::unique_ptr<pugi::xml_document> Doc;
         int NrFetched = 0;
-        do
+        int Iteration = 0;
+
+        bool LoadMore = true;
+        do//while(Client->LoadXML(Iteration++))
         {
+            if(LoadMore)
+                LoadMore = Client->LoadXML(Iteration++);
+
             Doc = Client->FetchDocument();
             if(Doc == nullptr)
                 break;

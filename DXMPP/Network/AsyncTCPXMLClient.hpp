@@ -129,6 +129,7 @@ namespace DXMPP
 
 
             bool InnerLoadXML();
+            bool LoadXML(int Iteration );
             void LoadXML();
 
             std::unique_ptr<pugi::xml_document>  FetchDocument();
