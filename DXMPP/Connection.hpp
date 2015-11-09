@@ -9,6 +9,15 @@
 #ifndef DXMPP_Connection_hpp
 #define DXMPP_Connection_hpp
 
+#include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/any.hpp>
+
+#include <sstream>
+
 #include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
 #include <DXMPP/SASL/SASLMechanism.hpp>
@@ -20,14 +29,6 @@
 #include <DXMPP/Roster.hpp>
 #include <DXMPP/IEventHandler.hpp>
 
-#include <boost/thread.hpp>
-#include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
-#include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/any.hpp>
-
-#include <sstream>
 
 
 

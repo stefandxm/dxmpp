@@ -23,19 +23,21 @@
 
 #endif
 
-#include <pugixml/pugixml.hpp>
-#include <DXMPP/Debug/DebugOutputTreshold.hpp>
-#include <DXMPP/TLSVerification.hpp>
-
-#include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/smart_ptr.hpp>
 #include <memory>
 #include <sstream>
 #include <queue>
+
+
+#include <pugixml/pugixml.hpp>
+#include <DXMPP/Debug/DebugOutputTreshold.hpp>
+#include <DXMPP/TLSVerification.hpp>
+
 
 namespace DXMPP
 {

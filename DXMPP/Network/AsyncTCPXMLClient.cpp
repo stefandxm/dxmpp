@@ -426,6 +426,7 @@ else std::cout
 
         bool AsyncTCPXMLClient::EnsureTCPKeepAlive()
         {
+#ifndef WIN32
             // http://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/
             int optval;
             socklen_t optlen = sizeof(optval);
@@ -452,7 +453,7 @@ else std::cout
 
             DebugOut(DebugOutputTreshold::Debug)
                 << "Set TCP Keep alive on native socket" << std::endl;
-
+#endif
             return true;
         }
 
