@@ -24,6 +24,29 @@ add_library(dxmpp
 
 )
 
-target_link_libraries (dxmpp
-    pugixml boost_thread boost_system ssl crypto cryptopp pthread dl expat
-)
+if(WIN32)
+  target_link_libraries (dxmpp
+      pugixml 
+      boost_thread 
+      boost_system 
+      libeay32
+      ssleay32
+      cryptopp
+      libexpat
+  )
+else()
+    target_link_libraries (dxmpp
+      pugixml 
+      boost_thread 
+      boost_system 
+      ssley32
+      cryptopp
+      ssl 
+      crypto 
+      cryptopp       
+      pthread 
+      dl 
+      expat
+  )
+
+endif()
