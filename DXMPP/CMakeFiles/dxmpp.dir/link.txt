@@ -1,0 +1,2 @@
+/usr/bin/ar cr libdxmpp.a  CMakeFiles/dxmpp.dir/Connection.cpp.o CMakeFiles/dxmpp.dir/Network/AsyncTCPXMLClient.cpp.o CMakeFiles/dxmpp.dir/SASL/SaslChallengeParser.cpp.o CMakeFiles/dxmpp.dir/SASL/SASLMechanism.cpp.o CMakeFiles/dxmpp.dir/SASL/SASLMechanism_PLAIN.cpp.o CMakeFiles/dxmpp.dir/SASL/SASLMechanism_SCRAM_SHA1.cpp.o CMakeFiles/dxmpp.dir/SASL/SASLMechanism_DIGEST_MD5.cpp.o CMakeFiles/dxmpp.dir/Roster.cpp.o
+/usr/bin/ranlib libdxmpp.a
