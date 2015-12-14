@@ -39,7 +39,6 @@ else()
       pugixml 
       boost_thread 
       boost_system 
-      ssley32
       cryptopp
       ssl 
       crypto 
