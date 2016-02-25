@@ -27,8 +27,8 @@ add_library(dxmpp
 if(WIN32)
   target_link_libraries (dxmpp
       pugixml 
-      boost_thread 
-      boost_system 
+      ${Boost_THREAD_LIBRARY}
+      ${Boost_SYSTEM_LIBRARY}
       libeay32
       ssleay32
       cryptopp
@@ -37,8 +37,8 @@ if(WIN32)
 else()
     target_link_libraries (dxmpp
       pugixml 
-      boost_thread 
-      boost_system 
+      ${Boost_THREAD_LIBRARY}
+      ${Boost_SYSTEM_LIBRARY}
       cryptopp
       ssl 
       crypto 
