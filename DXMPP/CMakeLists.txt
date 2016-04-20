@@ -34,6 +34,19 @@ if(WIN32)
       cryptopp
       libexpat
   )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  message("Detected FreeBSD")
+    target_link_libraries (dxmpp
+      pugixml 
+      boost_thread 
+      boost_system 
+      cryptopp
+      ssl 
+      crypto 
+      cryptopp       
+      pthread 
+      expat
+  )
 else()
     target_link_libraries (dxmpp
       pugixml 
