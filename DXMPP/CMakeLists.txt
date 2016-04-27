@@ -62,3 +62,6 @@ else()
   )
 
 endif()
+
+install (TARGETS dxmpp DESTINATION lib)
+install (DIRECTORY "${PROJECT_SOURCE_DIR}" DESTINATION "include" FILES_MATCHING PATTERN "*.hpp")
