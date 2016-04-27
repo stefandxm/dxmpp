@@ -54,3 +54,6 @@ include_directories($(PROJECT_SOURCE_DIR))
 add_subdirectory(pugixml)
 add_subdirectory(DXMPP)
 add_subdirectory(Examples)
+
+install (DIRECTORY "${PROJECT_SOURCE_DIR}/pugixml" DESTINATION "include" FILES_MATCHING PATTERN "*.h*")
+
