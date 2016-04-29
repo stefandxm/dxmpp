@@ -11,4 +11,4 @@ add_library(pugixml
 )
 
 install (TARGETS pugixml DESTINATION lib)
-install (DIRECTORY "${PROJECT_SOURCE_DIR}" DESTINATION "include/pugixml" FILES_MATCHING PATTERN "*.h*")
+install (DIRECTORY "${PROJECT_SOURCE_DIR}" DESTINATION "include" FILES_MATCHING PATTERN "*.h*")
