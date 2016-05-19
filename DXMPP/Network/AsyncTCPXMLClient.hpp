@@ -143,6 +143,7 @@ namespace DXMPP
 
             ~AsyncTCPXMLClient()
             {
+                //std::cout << "~AsyncTCPXMLClient" << std::endl;
             }
 
 

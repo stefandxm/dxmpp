@@ -5,220 +5,119 @@
       <Option title="DXMPP" />
       <Option makefile_is_custom="1" />
       <Option compiler="gcc" />
-      <Option virtualFolders="CMake Files\;CMake Files\ThirdParty\;CMake Files\ThirdParty\DXMPP\;CMake Files\ThirdParty\DXMPP\DXMPP\;CMake Files\ThirdParty\DXMPP\Examples\;CMake Files\ThirdParty\DXMPP\pugixml\;CMake Files\HTTPForwarder\;CMake Files\joxmojs\;CMake Files\MeetingIQ\;CMake Files\Raubtier\;CMake Files\Pitbull\;CMake Files\Tests\;CMake Files\Launchers\;CMake Files\SynergyInterCom\;CMake Files\Launcher\;CMake Files\cmake-modules\;CMake Files\.git\;CMake Files\.git\refs\;CMake Files\.git\refs\heads\;" />
+      <Option virtualFolders="CMake Files\;CMake Files\DXMPP\;CMake Files\Examples\;CMake Files\pugixml\;" />
       <Build>
       <Target title="all">
-         <Option working_dir="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP" />
+         <Option working_dir="/home/stefan/src/dxmpp/DXMPP" />
          <Option type="4" />
          <MakeCommands>
-            <Build command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 all" />
-            <CompileFile command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
-            <Clean command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
-            <DistClean command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
+            <Build command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
       <Target title="dxmpp">
-         <Option output="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/libdxmpp.a" prefix_auto="0" extension_auto="0" />
-         <Option working_dir="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP" />
+         <Option output="/home/stefan/src/dxmpp/DXMPP/libdxmpp.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/stefan/src/dxmpp/DXMPP" />
          <Option object_output="./" />
          <Option type="2" />
          <Option compiler="gcc" />
          <Compiler>
-            <Add option="-DTARGETPLATFORM=&quot;Darwin&quot;" />
-            <Add directory="/Users/stefan/src/skynetnative" />
-            <Add directory="/Users/stefan/src/skynetnative/../nativethirdparty/include" />
-            <Add directory="/Users/stefan/src/skynetnative/ThirdParty" />
-            <Add directory="/Users/stefan/src/skynetnative/ThirdParty/DXMPP" />
-            <Add directory="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/$(PROJECT_SOURCE_DIR)" />
+            <Add directory="/home/stefan/src/dxmpp/$(PROJECT_SOURCE_DIR)" />
+            <Add directory="/home/stefan/src/nativethirdparty/include" />
          </Compiler>
          <MakeCommands>
-            <Build command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 dxmpp" />
-            <CompileFile command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
-            <Clean command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
-            <DistClean command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
+            <Build command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 dxmpp" />
+            <CompileFile command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
       <Target title="dxmpp/fast">
-         <Option output="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/libdxmpp.a" prefix_auto="0" extension_auto="0" />
-         <Option working_dir="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP" />
+         <Option output="/home/stefan/src/dxmpp/DXMPP/libdxmpp.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/stefan/src/dxmpp/DXMPP" />
          <Option object_output="./" />
          <Option type="2" />
          <Option compiler="gcc" />
          <Compiler>
-            <Add option="-DTARGETPLATFORM=&quot;Darwin&quot;" />
-            <Add directory="/Users/stefan/src/skynetnative" />
-            <Add directory="/Users/stefan/src/skynetnative/../nativethirdparty/include" />
-            <Add directory="/Users/stefan/src/skynetnative/ThirdParty" />
-            <Add directory="/Users/stefan/src/skynetnative/ThirdParty/DXMPP" />
-            <Add directory="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/$(PROJECT_SOURCE_DIR)" />
+            <Add directory="/home/stefan/src/dxmpp/$(PROJECT_SOURCE_DIR)" />
+            <Add directory="/home/stefan/src/nativethirdparty/include" />
          </Compiler>
          <MakeCommands>
-            <Build command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 dxmpp/fast" />
-            <CompileFile command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
-            <Clean command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
-            <DistClean command="/usr/bin/make -f &quot;/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
+            <Build command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 dxmpp/fast" />
+            <CompileFile command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/gmake -f &quot;/home/stefan/src/dxmpp/DXMPP/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
       </Build>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Connection.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Connection.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Network/AsyncTCPXMLClient.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Network/AsyncTCPXMLClient.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Roster.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Roster.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism_DIGEST_MD5.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism_DIGEST_MD5.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism_PLAIN.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism_PLAIN.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism_SCRAM_SHA1.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism_SCRAM_SHA1.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SaslChallengeParser.cpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SaslChallengeParser.cpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Connection.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Connection.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/ConnectionCallback.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/ConnectionCallback.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Debug/DebugOutputTreshold.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Debug/DebugOutputTreshold.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/IEventHandler.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/IEventHandler.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/JID.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/JID.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Network/AsyncTCPXMLClient.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Network/AsyncTCPXMLClient.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Roster.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Roster.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism_DIGEST_MD5.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism_DIGEST_MD5.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism_PLAIN.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism_PLAIN.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SASLMechanism_SCRAM_SHA1.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SASLMechanism_SCRAM_SHA1.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/SASL/SaslChallengeParser.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/SASL/SaslChallengeParser.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/Stanza.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/Stanza.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/StanzaCallback.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/StanzaCallback.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/TLSVerification.hpp">
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/TLSVerification.hpp">
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/CMakeLists.txt">
+      <Unit filename="/home/stefan/src/dxmpp/CMakeLists.txt">
           <Option virtualFolder="CMake Files\" />
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\" />
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\DXMPP\" />
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\" />
+      <Unit filename="/home/stefan/src/dxmpp/DXMPP/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\DXMPP\" />
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\DXMPP\" />
+      <Unit filename="/home/stefan/src/dxmpp/Examples/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\Examples\" />
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\DXMPP\" />
+      <Unit filename="/home/stefan/src/dxmpp/Examples/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\Examples\" />
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/DXMPP/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\DXMPP\" />
+      <Unit filename="/home/stefan/src/dxmpp/pugixml/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\pugixml\" />
       </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/Examples/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\Examples\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/Examples/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\Examples\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/Examples/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\Examples\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/pugixml/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\pugixml\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/pugixml/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\pugixml\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/ThirdParty/DXMPP/pugixml/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\ThirdParty\DXMPP\pugixml\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/HTTPForwarder/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\HTTPForwarder\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/HTTPForwarder/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\HTTPForwarder\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/joxmojs/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\joxmojs\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/joxmojs/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\joxmojs\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/MeetingIQ/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\MeetingIQ\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/MeetingIQ/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\MeetingIQ\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Raubtier/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Raubtier\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Raubtier/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Raubtier\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Pitbull/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Pitbull\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Pitbull/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Pitbull\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Tests/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Tests\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Tests/GitSHA1.cpp.in">
-          <Option virtualFolder="CMake Files\Tests\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Tests/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Tests\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Tests/GitSHA1.cpp.in">
-          <Option virtualFolder="CMake Files\Tests\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Launchers/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Launchers\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Launchers/GitSHA1.cpp.in">
-          <Option virtualFolder="CMake Files\Launchers\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Launchers/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Launchers\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Launchers/GitSHA1.cpp.in">
-          <Option virtualFolder="CMake Files\Launchers\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/SynergyInterCom/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\SynergyInterCom\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/SynergyInterCom/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\SynergyInterCom\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Launcher/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Launcher\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/Launcher/CMakeLists.txt">
-          <Option virtualFolder="CMake Files\Launcher\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/cmake-modules/GetGitRevisionDescription.cmake">
-          <Option virtualFolder="CMake Files\cmake-modules\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/cmake-modules/GetGitRevisionDescription.cmake.in">
-          <Option virtualFolder="CMake Files\cmake-modules\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/.git/HEAD">
-          <Option virtualFolder="CMake Files\.git\" />
-      </Unit>
-      <Unit filename="/Users/stefan/src/skynetnative/.git/refs/heads/v2">
-          <Option virtualFolder="CMake Files\.git\refs\heads\" />
+      <Unit filename="/home/stefan/src/dxmpp/pugixml/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\pugixml\" />
       </Unit>
    </Project>
 </CodeBlocks_project_file>

@@ -582,24 +582,31 @@ else std::cout
     Connection::~Connection()
     {
 
+        //std::cout << "~Connection" << std::endl;
         if( Authentication != nullptr )
         {
-            std::cout << "Delete authentication" << std::endl;
+            //std::cout << "Delete authentication" << std::endl;
             delete Authentication;
         }
+        //std::cout << "Delete roster" << std::endl;
         delete Roster;
-
-        Client = nullptr;
 
         if( io_service != nullptr )
         {
+            //std::cout << "Stop IO Service" << std::endl;
             io_service->stop();
         }
 
+        //std::cout << "Client = nullptr" << std::endl;
+        Client = nullptr;
+
         if( IOThread != nullptr )
         {
+            //std::cout << "Join IO Thread" << std::endl;
             IOThread->join();
         }
+
+        //std::cout << "~Connection done" << std::endl;
     }
 
     SharedConnection Connection::Create( const std::string &Hostname,
