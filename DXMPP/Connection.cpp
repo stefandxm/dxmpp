@@ -679,7 +679,7 @@ else std::cout
 
     void Connection::ClientDisconnected()
     {
-        std::cerr << "Client disconnected." << std::endl;
+        //std::cerr << "Client disconnected." << std::endl;
         CurrentConnectionState  = ConnectionState::ErrorUnknown;
         BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
     }
