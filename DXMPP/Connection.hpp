@@ -28,7 +28,7 @@
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
 #include <DXMPP/Roster.hpp>
 #include <DXMPP/IEventHandler.hpp>
-
+#include <atomic>
 
 
 
@@ -53,6 +53,8 @@ namespace DXMPP
             ErrorAuthenticating,
             ErrorUnknown
         };
+
+        std::atomic<bool> Disposing;
 
         enum class AuthenticationState
         {
@@ -139,6 +141,8 @@ namespace DXMPP
             TLSVerification *Verification = nullptr,
             TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
             DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
+
+        void Run();
 
     public:
 

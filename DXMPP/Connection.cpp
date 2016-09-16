@@ -506,6 +506,7 @@ else std::cout
         TLSVerificationMode VerificationMode,
         DebugOutputTreshold DebugTreshold)
     :
+        Disposing(false),
         SelfHostedVerifier(new TLSVerification(VerificationMode)),
         ConnectionHandler(ConnectionHandler),
         StanzaHandler(StanzaHandler),
@@ -575,12 +576,38 @@ else std::cout
         // Fork io
         IOThread.reset(
                     new boost::thread(boost::bind(
-                                          &boost::asio::io_service::run,
-                                          io_service.get())));
+                                          &Connection::Run,
+                                          this)));
     }
+
+    void Connection::Run()
+    {
+
+        DebugOut(DebugOutputTreshold::Debug)
+                << "DXMPP: Starting io run" << std::endl;
+        try
+        {
+            io_service->run();
+        }
+        catch(const std::exception &ex)
+        {
+            DebugOut(DebugOutputTreshold::Error)
+                    << "DXMPP IO Exception: " << ex.what() << std::endl;
+
+        }
+        catch(...)
+        {
+            DebugOut(DebugOutputTreshold::Error)
+                    << "DXMPP IO Exception: Unknown" << std::endl;
+        }
+        BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
+    }
+
+
 
     Connection::~Connection()
     {
+        Disposing=true;
 
         //std::cout << "~Connection" << std::endl;
         if( Authentication != nullptr )
