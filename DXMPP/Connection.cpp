@@ -36,6 +36,9 @@ else std::cout
             return;
         PreviouslyBroadcastedState = NewState;
 
+
+        boost::shared_lock<boost::shared_mutex> ReadLock(ConnectionHandlerMutex);
+
         if(!ConnectionHandler)
             return;
 
@@ -364,6 +367,7 @@ else std::cout
     void Connection::DispatchStanza(std::unique_ptr<pugi::xml_document> Doc)
     {
         xml_node message = Doc->select_single_node("//message").node();
+        boost::shared_lock<boost::shared_mutex> ReadLock(StanzaHandlerMutex);
         if(StanzaHandler)
             StanzaHandler->StanzaReceived(
                         SharedStanza(

@@ -68,8 +68,10 @@ namespace DXMPP
         boost::shared_ptr<boost::asio::io_service> io_service;
         boost::scoped_ptr<boost::thread> IOThread;
         boost::scoped_ptr<TLSVerification> SelfHostedVerifier;
-        ConnectionCallback *ConnectionHandler;
-        StanzaCallback *StanzaHandler;
+        ConnectionCallback * ConnectionHandler;
+        boost::shared_mutex ConnectionHandlerMutex;
+        StanzaCallback * StanzaHandler;
+        boost::shared_mutex StanzaHandlerMutex;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
         boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
@@ -169,6 +171,17 @@ namespace DXMPP
                                        TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
                                        DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
 
+        void DeRegisterHandlers()
+        {
+            {
+                boost::unique_lock<boost::shared_mutex> WriteLock(ConnectionHandlerMutex);
+                ConnectionHandler = nullptr;
+            }
+            {
+                boost::unique_lock<boost::shared_mutex> WriteLock(StanzaHandlerMutex);
+                StanzaHandler = nullptr;
+            }
+        }
         ~Connection();
     };
 }
