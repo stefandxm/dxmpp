@@ -414,6 +414,7 @@ else std::cout
 
         Stanza->Message.attribute("from").set_value( MyJID.GetFullJID().c_str() );
         Stanza->Message.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
+        Stanza->Message.attribute("id").set_value( Stanza->ID.c_str() );
 
         Client->WriteXMLToSocket(Stanza->Document.get());
     }
