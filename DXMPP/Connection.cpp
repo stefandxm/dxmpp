@@ -51,13 +51,13 @@ else std::cout
         CurrentConnectionState = ConnectionState::WaitingForFeatures;
 
         stringstream Stream;
-        Stream << "<?xml version='1.0' encoding='utf-8'?>" << std::endl;
-        Stream << "<stream:stream" << endl;
-        Stream << " from = '" << MyJID.GetBareJID() << "'" << endl;
-        Stream << " to = '" << MyJID.GetDomain() << "'" << endl;
-        Stream << " version='1.0'" << endl;
-        Stream << " xml:lang='en'" << endl;
-        Stream << " xmlns='jabber:client'" << endl;
+        Stream << "<?xml version='1.0' encoding='utf-8'?>";
+        Stream << "<stream:stream";
+        Stream << " from = '" << MyJID.GetBareJID() << "'";
+        Stream << " to = '" << MyJID.GetDomain() << "'";
+        Stream << " version='1.0'";
+        Stream << " xml:lang='en'";
+        Stream << " xmlns='jabber:client'";
         Stream << " xmlns:stream='http://etherx.jabber.org/streams'>";
 
         DebugOut(DebugOutputTreshold::Debug)
