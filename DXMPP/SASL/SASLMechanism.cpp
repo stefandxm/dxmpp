@@ -53,7 +53,7 @@ namespace DXMPP
         using namespace boost::archive::iterators;
 
         typedef transform_width< binary_from_base64<remove_whitespace<string::const_iterator> >, 8, 6 > Base64Decode;
-        typedef insert_linebreaks<base64_from_binary<transform_width<string::const_iterator,6,8> >, 72 > Base64Encode;
+        typedef base64_from_binary<transform_width<string::const_iterator,6,8> > Base64Encode;
 
         string SASLMechanism::DecodeBase64(string Input)
         {
