@@ -25,6 +25,13 @@ namespace  DXMPP
                                 std::string Message) = 0;
     };
 
+    class IQCallback {
+    public:
+        virtual void OnIQ(JID From, std::string Type,
+                          pugi::xml_node Node,
+                          std::function<void (pugi::xml_document *)> Send) = 0;
+    };
+
     class SubscribeCallback
     {
     public:
@@ -58,6 +65,7 @@ namespace  DXMPP
         boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink;
 
         PresenceCallback *PresenceHandler;
+        IQCallback *IQHandler;
         SubscribeCallback *SubscribeHandler;
         SubscribedCallback *SubscribedHandler;
         UnsubscribedCallback *UnsubscribedHandler;
@@ -71,6 +79,7 @@ namespace  DXMPP
 
         // Invoked from Connection
         void OnPresence(pugi::xml_node Node);
+        void OnIQ(pugi::xml_node Node);
     public:
 
         // User functions
@@ -93,6 +102,21 @@ namespace  DXMPP
               SubscribeHandler(SubscribeHandler),
               SubscribedHandler(SubscribedHandler),
               UnsubscribedHandler(UnsubscribedHandler)
+        {
+        }
+
+        RosterMaintaner(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
+                        PresenceCallback *PresenceHandler,
+                        SubscribeCallback *SubscribeHandler,
+                        SubscribedCallback *SubscribedHandler,
+                        UnsubscribedCallback *UnsubscribedHandler,
+                        IQCallback *IQHandler)
+                : Uplink(Uplink),
+                  PresenceHandler(PresenceHandler),
+                  IQHandler(IQHandler),
+                  SubscribeHandler(SubscribeHandler),
+                  SubscribedHandler(SubscribedHandler),
+                  UnsubscribedHandler(UnsubscribedHandler)
         {
         }
 

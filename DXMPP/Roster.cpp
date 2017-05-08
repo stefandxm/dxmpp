@@ -110,6 +110,19 @@ namespace DXMPP
                                     Show);
     }
 
+    void RosterMaintaner::OnIQ(pugi::xml_node Node)
+    {
+        std::string Type = Node.attribute("type").value();
+        if(IQHandler == nullptr)
+            return;
+
+        JID From(Node.attribute("from").value());
+        auto send = std::bind(&DXMPP::Network::AsyncTCPXMLClient::WriteXMLToSocket,
+                              Uplink.get(),
+                              std::placeholders::_1);
+        IQHandler->OnIQ(From, Type, Node, send);
+    }
+
     void RosterMaintaner::Subscribe(JID To)
     {
         pugi::xml_document doc;
