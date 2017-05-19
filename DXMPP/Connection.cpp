@@ -485,7 +485,7 @@ else std::cout
 
         if(Authentication != nullptr)
         {
-            Authentication.reset()
+            Authentication.reset();
         }
 
     }
