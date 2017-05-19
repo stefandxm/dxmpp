@@ -154,20 +154,20 @@ else std::cout
 
         if(FeaturesSASL_ScramSHA1)
         {
-            Authentication = new  SASL::SASL_Mechanism_SCRAM_SHA1 ( Client, MyJID, Password),
-            Authentication->Begin();
+            Authentication.reset(new  SASL::SASL_Mechanism_SCRAM_SHA1 ( Client, MyJID, Password)),
+                    Authentication->Begin();
             return;
         }
         if(FeaturesSASL_DigestMD5)
         {
-            Authentication = new  SASL::Weak::SASL_Mechanism_DigestMD5 ( Client , MyJID, Password),
-            Authentication->Begin();
+            Authentication.reset(new  SASL::Weak::SASL_Mechanism_DigestMD5 ( Client , MyJID, Password)),
+                    Authentication->Begin();
             return;
         }
         if(FeaturesSASL_Plain)
         {
-            Authentication = new  SASL::Weak::SASL_Mechanism_PLAIN ( Client , MyJID, Password),
-            Authentication->Begin();
+            Authentication.reset(new  SASL::Weak::SASL_Mechanism_PLAIN ( Client , MyJID, Password)),
+                    Authentication->Begin();
             return;
         }
     }
@@ -485,8 +485,7 @@ else std::cout
 
         if(Authentication != nullptr)
         {
-            Authentication = nullptr;
-            delete Authentication;
+            Authentication.reset()
         }
 
     }
@@ -525,7 +524,7 @@ else std::cout
         VerificationMode(VerificationMode),
         Authentication(nullptr)
     {
-        Roster = new RosterMaintaner (Client,
+        Roster = new RosterMaintaner (nullptr,
                PresenceHandler,
                SubscribeHandler,
                SubscribedHandler,
@@ -551,6 +550,17 @@ else std::cout
         {
             IOThread->join();
         }
+
+
+        if (Client != nullptr)
+        {
+            this->Roster->ResetClient(nullptr);
+            if (this->Authentication != nullptr)
+            {
+                this->Authentication.reset();
+            }
+        }
+
 
         io_service.reset( new boost::asio::io_service() );
 
@@ -618,7 +628,7 @@ else std::cout
         if( Authentication != nullptr )
         {
             //std::cout << "Delete authentication" << std::endl;
-            delete Authentication;
+            Authentication.reset();
         }
         //std::cout << "Delete roster" << std::endl;
         delete Roster;
@@ -629,8 +639,9 @@ else std::cout
             io_service->stop();
         }
 
+        io_service.reset();
         //std::cout << "Client = nullptr" << std::endl;
-        Client = nullptr;
+        Client.reset();
 
         if( IOThread != nullptr )
         {

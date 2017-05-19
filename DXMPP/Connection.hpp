@@ -97,7 +97,7 @@ namespace DXMPP
 
         TLSVerification *Verification;
         TLSVerificationMode VerificationMode;
-        SASL::SASLMechanism *Authentication;
+        boost::scoped_ptr<SASL::SASLMechanism> Authentication;
 
         void Reset();
         void InitTLS();
