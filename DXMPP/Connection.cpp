@@ -29,6 +29,7 @@ else std::cout
     using namespace std;
     using namespace pugi;
 
+    std::atomic<std::size_t> Connection::ReconnectionCount(0);
 
     void Connection::BrodcastConnectionState(ConnectionCallback::ConnectionState NewState)
     {
@@ -492,6 +493,7 @@ else std::cout
 
     void Connection::Reconnect()
     {
+        ReconnectionCount++;
         Reset();
         Connect();
     }
