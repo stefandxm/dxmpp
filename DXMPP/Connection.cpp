@@ -29,7 +29,7 @@ else std::cout
     using namespace std;
     using namespace pugi;
 
-    std::atomic<std::size_t> Connection::ReconnectionCount(0);
+    std::atomic<int> Connection::ReconnectionCount(-1);
 
     void Connection::BrodcastConnectionState(ConnectionCallback::ConnectionState NewState)
     {
