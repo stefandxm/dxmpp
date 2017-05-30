@@ -55,6 +55,7 @@ namespace DXMPP
         };
 
         std::atomic<bool> Disposing;
+        static std::atomic<int> ReconnectionCount;
 
         enum class AuthenticationState
         {
@@ -97,7 +98,7 @@ namespace DXMPP
 
         TLSVerification *Verification;
         TLSVerificationMode VerificationMode;
-        SASL::SASLMechanism *Authentication;
+        boost::scoped_ptr<SASL::SASLMechanism> Authentication;
 
         void Reset();
         void InitTLS();
@@ -147,6 +148,10 @@ namespace DXMPP
         void Run();
 
     public:
+        static int GetReconnectionCount()
+        {
+            return ReconnectionCount;
+        }
 
         void Reconnect();
         RosterMaintaner *Roster;
