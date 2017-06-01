@@ -386,6 +386,15 @@ else std::cout
         Roster->OnPresence(presence);
     }
 
+    void Connection::CheckForIQ(pugi::xml_document* Doc)
+    {
+        xml_node iq = Doc->select_single_node("//iq").node();
+
+        if(!iq)
+            return;
+
+        Roster->OnIQ(iq);
+    }
 
     SharedStanza Connection::CreateStanza(const JID &TargetJID)
     {
@@ -460,6 +469,7 @@ else std::cout
                 case ConnectionState::Connected:
                     BrodcastConnectionState(ConnectionCallback::ConnectionState::Connected);
                     CheckForPresence(Doc.get());
+                    CheckForIQ(Doc.get());
                     if(CheckStreamForStanza(Doc.get()))
                     {
                         DispatchStanza(std::move(Doc));
