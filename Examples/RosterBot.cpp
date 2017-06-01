@@ -20,7 +20,8 @@ class RosterBot :
         public PresenceCallback,
         public SubscribeCallback,
         public SubscribedCallback,
-        public UnsubscribedCallback
+        public UnsubscribedCallback,
+        public IQCallback
 {
 public:
     volatile bool Quit;
@@ -88,6 +89,32 @@ public:
              << " priority " << Priority << " status \""
              << Status << "\" with message \""
              << Message << "\"" << endl;
+    }
+
+    void OnIQ(JID From, std::string Type,
+              pugi::xml_node Node,
+              std::function<void (pugi::xml_document *)> Send)
+    {
+        if(Type == "get") {
+            if(!Node.child("ping").empty()) {
+                //JID From(Node.attribute("from").value());
+                std::string id = Node.attribute("id").value();
+
+                ///respond
+                pugi::xml_document doc;
+                pugi::xml_node IQTag = doc.append_child("iq");
+
+                IQTag.append_attribute("to");
+                IQTag.append_attribute("id");
+                IQTag.attribute("to").set_value(From.GetBareJID().c_str());
+                IQTag.attribute("id").set_value(id.c_str());
+
+                Send(&doc);
+            }
+        }
+
+        cout << "Got iq from " << From.GetFullJID()
+             << " type: " << Type << endl;
     }
 
     SubscribeCallback::Response OnSubscribe(JID From)

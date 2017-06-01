@@ -387,6 +387,15 @@ else std::cout
         Roster->OnPresence(presence);
     }
 
+    void Connection::CheckForIQ(pugi::xml_document* Doc)
+    {
+        xml_node iq = Doc->select_single_node("//iq").node();
+
+        if(!iq)
+            return;
+
+        Roster->OnIQ(iq);
+    }
 
     SharedStanza Connection::CreateStanza(const JID &TargetJID)
     {
@@ -461,6 +470,7 @@ else std::cout
                 case ConnectionState::Connected:
                     BrodcastConnectionState(ConnectionCallback::ConnectionState::Connected);
                     CheckForPresence(Doc.get());
+                    CheckForIQ(Doc.get());
                     if(CheckStreamForStanza(Doc.get()))
                     {
                         DispatchStanza(std::move(Doc));
@@ -505,6 +515,7 @@ else std::cout
         ConnectionCallback *ConnectionHandler,
         StanzaCallback *StanzaHandler,
         PresenceCallback *PresenceHandler,
+        IQCallback *IQHandler,
         SubscribeCallback *SubscribeHandler,
         SubscribedCallback *SubscribedHandler,
         UnsubscribedCallback *UnsubscribedHandler,
@@ -530,7 +541,8 @@ else std::cout
                PresenceHandler,
                SubscribeHandler,
                SubscribedHandler,
-               UnsubscribedHandler);
+               UnsubscribedHandler,
+               IQHandler);
 
         //this->Password = Password;
 
@@ -665,6 +677,7 @@ else std::cout
         ConnectionCallback *ConnectionHandler = dynamic_cast<ConnectionCallback*>  (Handler);
         StanzaCallback *StanzaHandler = dynamic_cast<StanzaCallback*> (Handler);
         PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
+        IQCallback *IQHandler = dynamic_cast<IQCallback*>(Handler);
         SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
         SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
         UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
@@ -678,6 +691,7 @@ else std::cout
                                    ConnectionHandler,
                                    StanzaHandler,
                                    PresenceHandler,
+                                   IQHandler,
                                    SubscribeHandler,
                                    SubscribedHandler,
                                    UnsubscribedHandler,
@@ -698,6 +712,7 @@ else std::cout
         ConnectionCallback *ConnectionHandler = dynamic_cast<ConnectionCallback*>  (Handler);
         StanzaCallback *StanzaHandler = dynamic_cast<StanzaCallback*> (Handler);
         PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
+        IQCallback *IQHandler = dynamic_cast<IQCallback*>(Handler);
         SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
         SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
         UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
@@ -714,6 +729,7 @@ else std::cout
                                    ConnectionHandler,
                                    StanzaHandler,
                                    PresenceHandler,
+                                   IQHandler,
                                    SubscribeHandler,
                                    SubscribedHandler,
                                    UnsubscribedHandler,

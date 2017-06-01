@@ -116,6 +116,7 @@ namespace DXMPP
         bool CheckStreamForStanza(pugi::xml_document *Doc);
         void DispatchStanza( std::unique_ptr< pugi::xml_document> Doc);
         void CheckForPresence(pugi::xml_document *Doc);
+        void CheckForIQ(pugi::xml_document *Doc);
 
         // this is ok (invalid xml)
         void CheckForStreamEnd();
@@ -138,6 +139,7 @@ namespace DXMPP
             ConnectionCallback *ConnectionHandler = nullptr,
             StanzaCallback *StanzaHandler = nullptr,
             PresenceCallback *PresenceHandler = nullptr,
+            IQCallback *IQHandler = nullptr,
             SubscribeCallback *SubscribeHandler = nullptr,
             SubscribedCallback *SubscribedHandler = nullptr,
             UnsubscribedCallback *UnsubscribedHandler = nullptr,
