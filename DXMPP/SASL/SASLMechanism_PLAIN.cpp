@@ -56,7 +56,7 @@ namespace DXMPP
                 std::string authid = MyJID.GetUsername();
                 std::string authzid = "";
     
-                byte tempbuff[1024];
+                CryptoPP::byte tempbuff[1024];
                 int offset= 0;
                 memcpy(tempbuff+offset, authzid.c_str(), authzid.length());
                 offset+=authzid.length();

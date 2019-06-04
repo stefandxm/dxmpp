@@ -75,12 +75,14 @@ namespace DXMPP
         boost::shared_mutex StanzaHandlerMutex;
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
+
         boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
 
         DebugOutputTreshold DebugTreshold;
 
 
 
+        bool FeaturesSASL_External;
         bool FeaturesSASL_DigestMD5;
         bool FeaturesSASL_CramMD5;
         bool FeaturesSASL_ScramSHA1;
@@ -92,6 +94,8 @@ namespace DXMPP
 
         std::string Hostname;
         std::string Password;
+        boost::asio::const_buffer Certificate;
+        boost::asio::const_buffer Privatekey;
         int Portnumber;
         JID MyJID;
 
@@ -145,6 +149,21 @@ namespace DXMPP
             TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
             DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
 
+        Connection(const std::string &Hostname,
+            int Portnumber,
+            const std::string &Domain,
+            boost::asio::const_buffer Certificate,
+            boost::asio::const_buffer Privatekey,
+            ConnectionCallback *ConnectionHandler = nullptr,
+            StanzaCallback *StanzaHandler = nullptr,
+            PresenceCallback *PresenceHandler = nullptr,
+            SubscribeCallback *SubscribeHandler = nullptr,
+            SubscribedCallback *SubscribedHandler = nullptr,
+            UnsubscribedCallback *UnsubscribedHandler = nullptr,
+            TLSVerification *Verification = nullptr,
+            TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
+            DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
+
         void Run();
 
     public:
@@ -172,6 +191,25 @@ namespace DXMPP
                                        int Portnumber,
                                        const JID &RequestedJID,
                                        const std::string &Password,
+                                       IEventHandler* Handler,
+                                       TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
+                                       DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
+
+        static SharedConnection Create(const std::string &Hostname,
+                                       int Portnumber,
+                                       const std::string &Domain,
+                                       boost::asio::const_buffer Certificate,
+                                       boost::asio::const_buffer Privatekey,
+                                       IEventHandler* Handler,
+                                       TLSVerification *Verification,
+                                       DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);
+
+
+        static SharedConnection Create(const std::string &Hostname,
+                                       int Portnumber,
+                                       const std::string &Domain,
+                                       boost::asio::const_buffer Certificate,
+                                       boost::asio::const_buffer Privatekey,
                                        IEventHandler* Handler,
                                        TLSVerificationMode VerificationMode = TLSVerificationMode::RFC2818_Hostname,
                                        DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error);

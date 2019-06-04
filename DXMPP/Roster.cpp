@@ -8,6 +8,7 @@
 
 #include <DXMPP/Roster.hpp>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 
 namespace DXMPP
 {
@@ -133,6 +134,4 @@ namespace DXMPP
 
         Uplink->WriteXMLToSocket(&doc);
     }
-
-
 }

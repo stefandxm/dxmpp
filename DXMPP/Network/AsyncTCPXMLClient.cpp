@@ -10,7 +10,7 @@
 #include <DXMPP/Network/AsyncTCPXMLClient.hpp>
 #include <boost/lexical_cast.hpp>
 #include <memory>
-
+#include <iostream>
 #include <expat.h>
 
 namespace DXMPP
@@ -49,6 +49,10 @@ else std::cout
             CurrentConnectionState = ConnectionState::Disconnected;
 
             ssl_context.reset(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
+            if(Certificate.size() > 0)
+                ssl_context->use_certificate(Certificate, boost::asio::ssl::context::file_format::pem);
+            if(Privatekey.size()>0)
+                ssl_context->use_private_key(Privatekey, boost::asio::ssl::context::file_format::pem);
             tcp_socket.reset( new boost::asio::ip::tcp::socket(*io_service) );
             ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
 
@@ -427,6 +431,7 @@ else std::cout
         bool AsyncTCPXMLClient::EnsureTCPKeepAlive()
         {
 #ifndef WIN32
+#ifdef BOOSTASIOHASNATIVE
             // http://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/
             int optval;
             socklen_t optlen = sizeof(optval);
@@ -453,7 +458,8 @@ else std::cout
 
             DebugOut(DebugOutputTreshold::Debug)
                 << "Set TCP Keep alive on native socket" << std::endl;
-#endif
+#endif // BOOSTASIOHASNATIVE
+#endif // !WIN32
             return true;
         }
 

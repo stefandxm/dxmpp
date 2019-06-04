@@ -8,6 +8,9 @@
 
 #include <DXMPP/Connection.hpp>
 #include <boost/thread.hpp>
+#include <iostream>
+#include <fstream>
+
 
 using namespace std;
 using namespace DXMPP;
@@ -30,7 +33,7 @@ public:
     void StanzaReceived(SharedStanza Stanza,
             SharedConnection Sender)
     {
-        xml_node Body = Stanza->Message.select_single_node("//body").node();
+        xml_node Body = Stanza->Message.select_node("//body").node();
         if(!Body)
             return;
 
@@ -45,7 +48,7 @@ public:
              << Stanza->From.GetFullJID() << endl;
 
 
-        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
+        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);        
         ResponseStanza->Message.append_copy(Body);
         Sender->SendStanza(ResponseStanza);
     }
@@ -101,12 +104,49 @@ int main(int, const char **)
 
     CustomTLSVerification Verifier;
 
-    SharedConnection Uplink = Connection::Create( string("deusexmachinae.se") /* Host */,
+    boost::asio::const_buffer Certificate;
+    boost::asio::const_buffer PrivateKey;
+
+    std::string Hostname = "host";
+    std::string Domain = "domain";
+
+
+    {
+        ifstream certfile ("/Users/stefan/certs/cpptest.pem", std::ios::binary | std::ios::ate);
+        std::streamsize certsize = certfile.tellg();
+        certfile.seekg(0, std::ios::beg);
+        std::vector<char> buffecertr(certsize);
+        if (!certfile.read(buffecertr.data(), certsize))
+        {
+            std::cerr << "Couldn't find certfile" << std::endl;
+            return 1;
+        }
+        Certificate = boost::asio::const_buffer(buffecertr.data(), buffecertr.size());
+    }
+
+
+    {
+        ifstream pkeyfile ("/Users/stefan/certs/cpptest.pem", std::ios::binary | std::ios::ate);
+        std::streamsize pkeysize = pkeyfile.tellg();
+        pkeyfile.seekg(0, std::ios::beg);
+        std::vector<char> bufferkey(pkeysize);
+        if (!pkeyfile.read(bufferkey.data(), pkeysize))
+        {
+            std::cerr << "Couldn't find keyfile" << std::endl;
+            return 1;
+        }
+        PrivateKey = boost::asio::const_buffer(bufferkey.data(), bufferkey.size());
+     }
+
+    SharedConnection Uplink = Connection::Create( Hostname,
                                                   5222 /* Port number */,
-                                                  DXMPP::JID( "dxmpp@users" ) /* Requested JID */,
-                                                  string("dxmpp") /* Password */,
+                                                  Domain,
+                                                  Certificate,
+                                                  PrivateKey,
                                                   &Handler,
-                                                  &Verifier);
+                                                  &Verifier,
+                                                  DebugOutputTreshold::Debug);
+
 
     cout << "Entering fg loop." <<endl;
     while(!Handler.Quit)

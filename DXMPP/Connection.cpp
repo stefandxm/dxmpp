@@ -18,6 +18,7 @@
 #include <DXMPP/SASL/SASLMechanism_DIGEST_MD5.hpp>
 #include <DXMPP/SASL/SASLMechanism_SCRAM_SHA1.hpp>
 #include <DXMPP/SASL/SASLMechanism_PLAIN.hpp>
+#include <DXMPP/SASL/SASLMechanism_EXTERNAL.hpp>
 
 namespace DXMPP
 {
@@ -100,7 +101,7 @@ else std::cout
 
         xdoc.save(o, "\t", format_no_declaration);
 
-        pugi::xpath_node starttls = xdoc.select_single_node("//starttls");
+        pugi::xpath_node starttls = xdoc.select_node("//starttls");
         if(starttls)
         {
             DebugOut(DebugOutputTreshold::Debug)
@@ -118,6 +119,8 @@ else std::cout
                 << "Mechanism supported: " << mechanism << std::endl;
 
 
+            if(mechanism == "EXTERNAL")
+                FeaturesSASL_External = true;
             if(mechanism == "DIGEST-MD5")
                 FeaturesSASL_DigestMD5 = true;
             if(mechanism == "CRAM-MD5")
@@ -152,6 +155,13 @@ else std::cout
 
         DebugOut(DebugOutputTreshold::Debug) << "SASL MANDLEBRASL" << std::endl;
         // I shall has picked an algorithm!
+
+        if(Certificate.size() >0 && FeaturesSASL_External)
+        {
+            Authentication.reset(new  SASL::SASL_Mechanism_EXTERNAL ( Client)),
+                    Authentication->Begin();
+            return;
+        }
 
         if(FeaturesSASL_ScramSHA1)
         {
@@ -216,7 +226,7 @@ else std::cout
 
     void Connection::CheckForTLSProceed(pugi::xml_document* Doc)
     {
-        if(!Doc->select_single_node("//proceed").node())
+        if(!Doc->select_node("//proceed").node())
         {
             std::cerr << "No proceed tag; B0rked SSL?!";
 
@@ -231,7 +241,7 @@ else std::cout
 
     void Connection::CheckForWaitingForSession(pugi::xml_document* Doc)
     {
-        xml_node iqnode = Doc->select_single_node("//iq").node();
+        xml_node iqnode = Doc->select_node("//iq").node();
 
         if(!iqnode)
         {
@@ -254,7 +264,7 @@ else std::cout
 
     void Connection::CheckForBindSuccess(pugi::xml_document* Doc)
     {
-        xml_node iqnode = Doc->select_single_node("//iq").node();
+        xml_node iqnode = Doc->select_node("//iq").node();
 
         if(!iqnode)
         {
@@ -297,8 +307,8 @@ else std::cout
 
     void Connection::CheckForSASLData(pugi::xml_document* Doc)
     {
-        xml_node challenge = Doc->select_single_node("//challenge").node();
-        xml_node success = Doc->select_single_node("//success").node();
+        xml_node challenge = Doc->select_node("//challenge").node();
+        xml_node success = Doc->select_node("//success").node();
 
         if(!challenge && !success)
         {
@@ -357,7 +367,7 @@ else std::cout
 
     bool Connection::CheckStreamForStanza(pugi::xml_document* Doc)
     {
-        xml_node message = Doc->select_single_node("//message").node();
+        xml_node message = Doc->select_node("//message").node();
 
         if(!message)
             return false;
@@ -367,7 +377,7 @@ else std::cout
 
     void Connection::DispatchStanza(std::unique_ptr<pugi::xml_document> Doc)
     {
-        xml_node message = Doc->select_single_node("//message").node();
+        xml_node message = Doc->select_node("//message").node();
         boost::shared_lock<boost::shared_mutex> ReadLock(StanzaHandlerMutex);
         if(StanzaHandler)
             StanzaHandler->StanzaReceived(
@@ -379,7 +389,7 @@ else std::cout
 
     void Connection::CheckForPresence(pugi::xml_document* Doc)
     {
-        xml_node presence = Doc->select_single_node("//presence").node();
+        xml_node presence = Doc->select_node("//presence").node();
 
         if(!presence)
             return;
@@ -498,6 +508,48 @@ else std::cout
         Connect();
     }
 
+     Connection::Connection(const std::string &Hostname,
+            int Portnumber,
+            const std::string &Domain,
+            boost::asio::const_buffer Certificate,
+            boost::asio::const_buffer Privatekey,
+            ConnectionCallback *ConnectionHandler,
+            StanzaCallback *StanzaHandler,
+            PresenceCallback *PresenceHandler,
+            SubscribeCallback *SubscribeHandler,
+            SubscribedCallback *SubscribedHandler,
+            UnsubscribedCallback *UnsubscribedHandler,
+            TLSVerification *Verification,
+            TLSVerificationMode VerificationMode,
+            DebugOutputTreshold DebugTreshold)
+        :
+        Disposing(false),
+        SelfHostedVerifier(new TLSVerification(VerificationMode)),
+        ConnectionHandler(ConnectionHandler),
+        StanzaHandler(StanzaHandler),
+        DebugTreshold(DebugTreshold),
+        CurrentAuthenticationState(AuthenticationState::None),
+        Hostname(Hostname),
+        Portnumber(Portnumber),
+        MyJID(Domain),
+        Certificate(Certificate),
+        Privatekey(Privatekey),
+        Verification(Verification),
+        VerificationMode(VerificationMode),
+        Authentication(nullptr)
+    {
+        Roster = new RosterMaintaner (nullptr,
+               PresenceHandler,
+               SubscribeHandler,
+               SubscribedHandler,
+               UnsubscribedHandler);
+
+        //this->Password = Password;
+
+        Reconnect();
+    }
+
+
     Connection::Connection(const std::string &Hostname,
         int Portnumber,
         const JID &RequestedJID,
@@ -569,6 +621,8 @@ else std::cout
         Client.reset(
                     new Network::AsyncTCPXMLClient (
                         io_service,
+                        Certificate,
+                        Privatekey,
                         ((Verification != nullptr) ? Verification : SelfHostedVerifier.get()),
                         Hostname,
                         Portnumber,
@@ -684,8 +738,7 @@ else std::cout
                                    Verification,
                                    Verification->Mode,
                                    DebugTreshold) );
-    }
-
+    }    
 
     SharedConnection Connection::Create(const std::string &Hostname,
                                         int Portnumber,
@@ -722,6 +775,76 @@ else std::cout
                                    DebugTreshold) );
     }
 
+     SharedConnection Connection::Create( const std::string &Hostname,
+                                         int Portnumber,
+                                         const std::string &Domain,
+                                         boost::asio::const_buffer Certificate,
+                                         boost::asio::const_buffer Privatekey,
+                                         IEventHandler* Handler,
+                                         TLSVerification *Verification,
+                                         DebugOutputTreshold DebugTreshold)
+    {
+        ConnectionCallback *ConnectionHandler = dynamic_cast<ConnectionCallback*>  (Handler);
+        StanzaCallback *StanzaHandler = dynamic_cast<StanzaCallback*> (Handler);
+        PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
+        SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
+        SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
+        UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
+
+
+
+        return boost::shared_ptr<Connection>(
+                    new Connection(Hostname,
+                                   Portnumber,
+                                   Domain,
+                                   Certificate,
+                                   Privatekey,
+                                   ConnectionHandler,
+                                   StanzaHandler,
+                                   PresenceHandler,
+                                   SubscribeHandler,
+                                   SubscribedHandler,
+                                   UnsubscribedHandler,
+                                   Verification,
+                                   Verification->Mode,
+                                   DebugTreshold) );
+    }
+
+    SharedConnection Connection::Create( const std::string &Hostname,
+                                         int Portnumber,
+                                         const std::string &Domain,
+                                         boost::asio::const_buffer Certificate,
+                                         boost::asio::const_buffer Privatekey,
+                                         IEventHandler* Handler,
+                                         TLSVerificationMode VerificationMode,
+                                         DebugOutputTreshold DebugTreshold)
+    {
+        ConnectionCallback *ConnectionHandler = dynamic_cast<ConnectionCallback*>  (Handler);
+        StanzaCallback *StanzaHandler = dynamic_cast<StanzaCallback*> (Handler);
+        PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
+        SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
+        SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
+        UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
+
+
+
+        return boost::shared_ptr<Connection>(
+                    new Connection(Hostname,
+                                   Portnumber,
+                                   Domain,
+                                   Certificate,
+                                   Privatekey,
+                                   ConnectionHandler,
+                                   StanzaHandler,
+                                   PresenceHandler,
+                                   SubscribeHandler,
+                                   SubscribedHandler,
+                                   UnsubscribedHandler,
+                                   nullptr,
+                                   VerificationMode,
+                                   DebugTreshold) );
+    }
+
     void Connection::ClientDisconnected()
     {
         //std::cerr << "Client disconnected." << std::endl;
@@ -732,6 +855,4 @@ else std::cout
     {
         CheckStreamForValidXML();
     }
-
-
 }

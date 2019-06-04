@@ -47,6 +47,8 @@ namespace DXMPP
         {
             TLSVerification *TLSConfig;
             DebugOutputTreshold DebugTreshold;
+            boost::asio::const_buffer Certificate;
+            boost::asio::const_buffer Privatekey;
 
             static const int ReadDataBufferSize = 1024;
             char ReadDataBufferNonSSL[ReadDataBufferSize];
@@ -62,7 +64,7 @@ namespace DXMPP
             std::string SendKeepAliveWhiteSpaceDataToSend;
             int SendKeepAliveWhiteSpaceTimeeoutSeconds;
 
-            boost::asio::strand SynchronizationStrand;
+            boost::asio::io_context::strand SynchronizationStrand;
 
             //boost::shared_mutex ReadMutex;
             //boost::shared_mutex WriteMutex;
@@ -155,6 +157,8 @@ namespace DXMPP
 
             AsyncTCPXMLClient(
                                boost::shared_ptr<boost::asio::io_service> IOService,
+                               boost::asio::const_buffer Certificate,
+                               boost::asio::const_buffer Privatekey,
                                TLSVerification *TLSConfig,
                                const std::string &Hostname,
                                int Portnumber,
@@ -163,6 +167,8 @@ namespace DXMPP
                                DebugOutputTreshold DebugTreshold = DebugOutputTreshold::Error)
                 :
                   TLSConfig(TLSConfig),
+                  Certificate(Certificate),
+                  Privatekey(Privatekey),
                   DebugTreshold(DebugTreshold),
                   SSLBuffer( boost::asio::buffer(ReadDataBufferSSL, ReadDataBufferSize) ),
                   NonSSLBuffer( boost::asio::buffer(ReadDataBufferNonSSL, ReadDataBufferSize) ),

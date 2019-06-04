@@ -34,7 +34,7 @@ public:
     void StanzaReceived(SharedStanza Stanza,
             SharedConnection Sender)
     {
-        xml_node Body = Stanza->Message.select_single_node("//body").node();
+        xml_node Body = Stanza->Message.select_node("//body").node();
         if(!Body)
             return;
 

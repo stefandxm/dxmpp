@@ -10,6 +10,7 @@ add_library(dxmpp
     SASL/SASLMechanism_PLAIN.cpp
     SASL/SASLMechanism_SCRAM_SHA1.cpp
     SASL/SASLMechanism_DIGEST_MD5.cpp
+		SASL/SASLMechanism_EXTERNAL.cpp
 
     Roster.cpp
 
