@@ -543,10 +543,6 @@ else std::cout
                SubscribeHandler,
                SubscribedHandler,
                UnsubscribedHandler);
-
-        //this->Password = Password;
-
-        Reconnect();
     }
 
 
@@ -583,10 +579,6 @@ else std::cout
                SubscribeHandler,
                SubscribedHandler,
                UnsubscribedHandler);
-
-        //this->Password = Password;
-
-        Reconnect();
     }
 
     void Connection::Connect()
@@ -724,8 +716,8 @@ else std::cout
         UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
 
 
-        return boost::shared_ptr<Connection>(
-                    new Connection(Hostname,
+		SharedConnection RVal =  boost::shared_ptr<Connection>(
+					new Connection(Hostname,
                                    Portnumber,
                                    RequestedJID,
                                    Password,
@@ -737,7 +729,9 @@ else std::cout
                                    UnsubscribedHandler,
                                    Verification,
                                    Verification->Mode,
-                                   DebugTreshold) );
+								   DebugTreshold) );
+		RVal->Reconnect();
+		return RVal;
     }    
 
     SharedConnection Connection::Create(const std::string &Hostname,
@@ -759,8 +753,8 @@ else std::cout
             std::cerr << "ConnectionHandler is null" << std::endl;
 
 
-        return boost::shared_ptr<Connection>(
-                    new Connection(Hostname,
+		SharedConnection RVal =  boost::shared_ptr<Connection>(
+					new Connection(Hostname,
                                    Portnumber,
                                    RequestedJID,
                                    Password,
@@ -772,7 +766,9 @@ else std::cout
                                    UnsubscribedHandler,
                                    nullptr,
                                    VerificationMode,
-                                   DebugTreshold) );
+								   DebugTreshold) );
+		RVal->Reconnect();
+		return RVal;
     }
 
      SharedConnection Connection::Create( const std::string &Hostname,
@@ -789,12 +785,12 @@ else std::cout
         PresenceCallback *PresenceHandler = dynamic_cast<PresenceCallback*>(Handler);
         SubscribeCallback *SubscribeHandler = dynamic_cast<SubscribeCallback*>(Handler);
         SubscribedCallback *SubscribedHandler = dynamic_cast<SubscribedCallback*>(Handler);
-        UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
+		UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
 
 
 
-        return boost::shared_ptr<Connection>(
-                    new Connection(Hostname,
+		SharedConnection RVal =  boost::shared_ptr<Connection>(
+					new Connection(Hostname,
                                    Portnumber,
                                    Domain,
                                    Certificate,
@@ -807,7 +803,9 @@ else std::cout
                                    UnsubscribedHandler,
                                    Verification,
                                    Verification->Mode,
-                                   DebugTreshold) );
+								   DebugTreshold) );
+		RVal->Reconnect();
+		return RVal;
     }
 
     SharedConnection Connection::Create( const std::string &Hostname,
@@ -828,8 +826,8 @@ else std::cout
 
 
 
-        return boost::shared_ptr<Connection>(
-                    new Connection(Hostname,
+		SharedConnection RVal =  boost::shared_ptr<Connection>(
+					new Connection(Hostname,
                                    Portnumber,
                                    Domain,
                                    Certificate,
@@ -842,13 +840,15 @@ else std::cout
                                    UnsubscribedHandler,
                                    nullptr,
                                    VerificationMode,
-                                   DebugTreshold) );
+								   DebugTreshold) );
+		RVal->Reconnect();
+		return RVal;
     }
 
     void Connection::ClientDisconnected()
-    {
-        //std::cerr << "Client disconnected." << std::endl;
-        CurrentConnectionState  = ConnectionState::ErrorUnknown;
+	{
+		//std::cerr << "Client disconnected." << std::endl;
+		CurrentConnectionState  = ConnectionState::ErrorUnknown;
         BrodcastConnectionState(ConnectionCallback::ConnectionState::ErrorUnknown);
     }
     void Connection::ClientGotData()

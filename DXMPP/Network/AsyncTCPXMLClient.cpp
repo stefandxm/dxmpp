@@ -49,10 +49,19 @@ else std::cout
             CurrentConnectionState = ConnectionState::Disconnected;
 
             ssl_context.reset(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
-            if(Certificate.size() > 0)
-                ssl_context->use_certificate(Certificate, boost::asio::ssl::context::file_format::pem);
-            if(Privatekey.size()>0)
-                ssl_context->use_private_key(Privatekey, boost::asio::ssl::context::file_format::pem);
+			try
+			{
+				if(Certificate.size() > 0)
+					ssl_context->use_certificate(Certificate, boost::asio::ssl::context::file_format::pem);
+				if(Privatekey.size()>0)
+					ssl_context->use_private_key(Privatekey, boost::asio::ssl::context::file_format::pem);
+			}
+			catch(std::exception &ex)
+			{
+				std::cerr<< "Exception in AsyncTCPXMLClient::Reset: " << ex.what() << std::endl;
+				CurrentConnectionState = ConnectionState::Error;
+			}
+
             tcp_socket.reset( new boost::asio::ip::tcp::socket(*io_service) );
             ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
 
@@ -512,16 +521,31 @@ else std::cout
             std::string SPortnumber;
             SPortnumber = boost::lexical_cast<string>( Portnumber);
             tcp::resolver::query query(Hostname, SPortnumber);
-            boost::system::error_code io_error = boost::asio::error::host_not_found;
-            tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+			boost::system::error_code io_error = boost::asio::error::host_not_found;
+			tcp::resolver::iterator endpoint_iterator;
+			try
+			{
+				endpoint_iterator = resolver.resolve(query);
+			}
+			catch(...)
+			{
+				CurrentConnectionState = ConnectionState::Error;
+				DebugOut(DebugOutputTreshold::Error)
+					<< "Failed to connect with error: "
+					<< "could not resolve hostname" << std::endl;
+
+				return false;
+			}
 
             boost::asio::connect(tcp_socket->lowest_layer(), endpoint_iterator, io_error);
 
             if (io_error)
             {
-                CurrentConnectionState = ConnectionState::Error;
-                std::cerr << "Failed to connect with error: "
-                          << io_error << " / " << io_error.message() << std::endl;
+				CurrentConnectionState = ConnectionState::Error;
+				DebugOut(DebugOutputTreshold::Error)
+					<< "Failed to connect with error: "
+					<< io_error << " / " << io_error.message() << std::endl;
+
                 return false;
             }
             else
