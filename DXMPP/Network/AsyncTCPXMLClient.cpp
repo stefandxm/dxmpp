@@ -41,7 +41,8 @@ else std::cout
 
         void AsyncTCPXMLClient::ClearReadDataStream()
         {
-            ReadDataStream->str(string(""));
+            ReadDataStream->str(string());
+            ReadDataStream->clear();
         }
 
         void AsyncTCPXMLClient::Reset()

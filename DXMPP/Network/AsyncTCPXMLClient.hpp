@@ -101,10 +101,10 @@ namespace DXMPP
             bool SSLConnection;
             volatile ConnectionState CurrentConnectionState;
 
-            boost::shared_ptr<boost::asio::io_service> io_service;
-            boost::scoped_ptr<boost::asio::ssl::context> ssl_context;
-            boost::scoped_ptr<boost::asio::ip::tcp::socket> tcp_socket;
-            boost::scoped_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> ssl_socket;
+            std::shared_ptr<boost::asio::io_service> io_service;
+            std::unique_ptr<boost::asio::ssl::context> ssl_context;
+            std::unique_ptr<boost::asio::ip::tcp::socket> tcp_socket;
+            std::unique_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> ssl_socket;
 
 
             void HandleWrite(boost::asio::ip::tcp::socket *active_socket,
@@ -156,7 +156,7 @@ namespace DXMPP
             GotDataCallbackFunction GotDataCallback;
 
             AsyncTCPXMLClient(
-                               boost::shared_ptr<boost::asio::io_service> IOService,
+                               std::shared_ptr<boost::asio::io_service> IOService,
                                boost::asio::const_buffer Certificate,
                                boost::asio::const_buffer Privatekey,
                                TLSVerification *TLSConfig,

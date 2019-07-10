@@ -12,6 +12,7 @@
 
 #include <boost/thread.hpp>
 
+#include <memory>
 #include <iostream>
 
 #include <DXMPP/SASL/SASLMechanism.hpp>
@@ -716,7 +717,7 @@ else std::cout
         UnsubscribedCallback *UnsubscribedHandler = dynamic_cast<UnsubscribedCallback*>(Handler);
 
 
-		SharedConnection RVal =  boost::shared_ptr<Connection>(
+        SharedConnection RVal =  std::shared_ptr<Connection>(
 					new Connection(Hostname,
                                    Portnumber,
                                    RequestedJID,
@@ -753,8 +754,8 @@ else std::cout
             std::cerr << "ConnectionHandler is null" << std::endl;
 
 
-		SharedConnection RVal =  boost::shared_ptr<Connection>(
-					new Connection(Hostname,
+        SharedConnection RVal =  std::make_shared<Connection>(
+                                    Hostname,
                                    Portnumber,
                                    RequestedJID,
                                    Password,
@@ -766,7 +767,7 @@ else std::cout
                                    UnsubscribedHandler,
                                    nullptr,
                                    VerificationMode,
-								   DebugTreshold) );
+                                   DebugTreshold);
 		RVal->Reconnect();
 		return RVal;
     }
@@ -789,8 +790,8 @@ else std::cout
 
 
 
-		SharedConnection RVal =  boost::shared_ptr<Connection>(
-					new Connection(Hostname,
+        SharedConnection RVal =  std::make_shared<Connection>(
+                    Hostname,
                                    Portnumber,
                                    Domain,
                                    Certificate,
@@ -803,7 +804,7 @@ else std::cout
                                    UnsubscribedHandler,
                                    Verification,
                                    Verification->Mode,
-								   DebugTreshold) );
+                                   DebugTreshold );
 		RVal->Reconnect();
 		return RVal;
     }
@@ -826,8 +827,8 @@ else std::cout
 
 
 
-		SharedConnection RVal =  boost::shared_ptr<Connection>(
-					new Connection(Hostname,
+        SharedConnection RVal =  std::make_shared<Connection>(
+                                   Hostname,
                                    Portnumber,
                                    Domain,
                                    Certificate,
@@ -840,7 +841,7 @@ else std::cout
                                    UnsubscribedHandler,
                                    nullptr,
                                    VerificationMode,
-								   DebugTreshold) );
+                                   DebugTreshold );
 		RVal->Reconnect();
 		return RVal;
     }

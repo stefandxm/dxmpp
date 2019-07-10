@@ -17,6 +17,7 @@
 #include <boost/any.hpp>
 
 #include <sstream>
+#include <memory>
 
 #include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
@@ -34,12 +35,11 @@
 
 namespace DXMPP
 {
-    typedef boost::shared_ptr<pugi::xml_node> SharedXMLNode;
+    typedef std::shared_ptr<pugi::xml_node> SharedXMLNode;
 
-    class Connection
-            :
-            public boost::enable_shared_from_this<Connection>
+    class Connection : public std::enable_shared_from_this<Connection>
     {
+    public:
         enum class ConnectionState
         {
             NotConnected = 0,
@@ -66,7 +66,7 @@ namespace DXMPP
             Authenticated
         };
 
-        boost::shared_ptr<boost::asio::io_service> io_service;
+        std::shared_ptr<boost::asio::io_service> io_service;
         boost::scoped_ptr<boost::thread> IOThread;
         boost::scoped_ptr<TLSVerification> SelfHostedVerifier;
         ConnectionCallback * ConnectionHandler;
@@ -76,7 +76,7 @@ namespace DXMPP
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
 
-        boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
+        std::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
 
         DebugOutputTreshold DebugTreshold;
 

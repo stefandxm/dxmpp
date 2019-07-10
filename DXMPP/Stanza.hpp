@@ -77,7 +77,7 @@ namespace DXMPP {
 
     };
 
-    typedef boost::shared_ptr<Stanza> SharedStanza;
+    typedef std::shared_ptr<Stanza> SharedStanza;
 
 }
 

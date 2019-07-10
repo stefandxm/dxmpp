@@ -55,7 +55,7 @@ namespace  DXMPP
     {
         friend class Connection;
 
-        boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink;
+        std::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink;
 
         PresenceCallback *PresenceHandler;
         SubscribeCallback *SubscribeHandler;
@@ -77,12 +77,12 @@ namespace  DXMPP
         void Subscribe(JID To);
         void Unsubscribe(JID To);
         
-        void ResetClient(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink)
+        void ResetClient(std::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink)
         {
             this->Uplink = Uplink;
         }
 
-        RosterMaintaner(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
+        RosterMaintaner(std::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink,
                         PresenceCallback *PresenceHandler,
                         SubscribeCallback *SubscribeHandler,
                         SubscribedCallback *SubscribedHandler,
