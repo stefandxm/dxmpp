@@ -49,7 +49,7 @@ else std::cout
         {
             CurrentConnectionState = ConnectionState::Disconnected;
 
-            ssl_context.reset(new boost::asio::ssl::context(boost::asio::ssl::context::sslv23));
+            ssl_context = std::make_unique<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
 			try
 			{
 				if(Certificate.size() > 0)
@@ -63,8 +63,8 @@ else std::cout
 				CurrentConnectionState = ConnectionState::Error;
 			}
 
-            tcp_socket.reset( new boost::asio::ip::tcp::socket(*io_service) );
-            ssl_socket.reset( new boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>(*tcp_socket, *ssl_context) );
+            tcp_socket = std::make_unique<boost::asio::ip::tcp::socket>(*io_service);
+            ssl_socket = std::make_unique<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>>(*tcp_socket, *ssl_context);
 
 
 

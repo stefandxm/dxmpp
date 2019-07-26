@@ -13,7 +13,6 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/any.hpp>
 
 #include <sstream>
@@ -30,8 +29,6 @@
 #include <DXMPP/Roster.hpp>
 #include <DXMPP/IEventHandler.hpp>
 #include <atomic>
-
-
 
 namespace DXMPP
 {
@@ -67,8 +64,8 @@ namespace DXMPP
         };
 
         std::shared_ptr<boost::asio::io_service> io_service;
-        boost::scoped_ptr<boost::thread> IOThread;
-        boost::scoped_ptr<TLSVerification> SelfHostedVerifier;
+        std::unique_ptr<boost::thread> IOThread;
+        std::unique_ptr<TLSVerification> SelfHostedVerifier;
         ConnectionCallback * ConnectionHandler;
         boost::shared_mutex ConnectionHandlerMutex;
         StanzaCallback * StanzaHandler;
@@ -102,7 +99,7 @@ namespace DXMPP
 
         TLSVerification *Verification;
         TLSVerificationMode VerificationMode;
-        boost::scoped_ptr<SASL::SASLMechanism> Authentication;
+        std::unique_ptr<SASL::SASLMechanism> Authentication;
 
         void Reset();
         void InitTLS();
