@@ -57,8 +57,8 @@ namespace DXMPP
             char ReadDataBufferSSL[ReadDataBufferSize];
             std::stringstream ReadDataStreamSSL;
 
-            boost::asio::mutable_buffers_1 SSLBuffer;
-            boost::asio::mutable_buffers_1 NonSSLBuffer;
+            boost::asio::mutable_buffer SSLBuffer;
+            boost::asio::mutable_buffer NonSSLBuffer;
             void SendKeepAliveWhitespace();
             std::unique_ptr<boost::asio::deadline_timer>  SendKeepAliveWhitespaceTimer;
             std::string SendKeepAliveWhiteSpaceDataToSend;

@@ -427,8 +427,7 @@ else std::cout
 
             {
                 boost::unique_lock<boost::shared_mutex> WriteLock(OutgoingDataMutex);
-                std::shared_ptr<std::string> SharedData (new std::string(Data));
-                OutgoingData.push( SharedData );
+                OutgoingData.push( std::make_shared<std::string>(Data) );
 
                 if(!Flushing)
                     FlushOutgoingDataUnsafe();  /* we have lock */
@@ -445,7 +444,7 @@ else std::cout
             // http://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/
             int optval;
             socklen_t optlen = sizeof(optval);
-            if(getsockopt(tcp_socket->lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0)
+            if(getsockopt(tcp_socket->lowest_layer().native_handle(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0)
             {
                 std::cerr << "Unable to getsockopt for keepalive" << std::endl;
                 return false;
@@ -456,12 +455,12 @@ else std::cout
             /* Set the option active */
             optval = 1;
             optlen = sizeof(optval);
-            if(setsockopt(tcp_socket->lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+            if(setsockopt(tcp_socket->lowest_layer().native_handle(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
                 std::cerr << "Unable to setsockopt for keepalive" << std::endl;
                 return false;
             }
             /* Check the status again */
-            if(getsockopt(tcp_socket->lowest_layer().native(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0) {
+            if(getsockopt(tcp_socket->lowest_layer().native_handle(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen) < 0) {
                 std::cerr << "Unable to very getsockopt for keepalive" << std::endl;
                 return false;
             }
