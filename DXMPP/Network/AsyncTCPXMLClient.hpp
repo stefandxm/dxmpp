@@ -32,7 +32,7 @@
 #include <memory>
 #include <sstream>
 #include <queue>
-
+#include <iostream>
 
 #include <pugixml/pugixml.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
@@ -145,7 +145,39 @@ namespace DXMPP
 
             ~AsyncTCPXMLClient()
             {
-                //std::cout << "~AsyncTCPXMLClient" << std::endl;
+                std::cout << "~AsyncTCPXMLClient" << std::endl;
+                try
+                {
+                    if( SendKeepAliveWhitespaceTimer != nullptr )
+                        SendKeepAliveWhitespaceTimer->cancel();
+                }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+                try
+                {
+                    io_service->stop();
+                    while (!io_service->stopped())
+                    {
+                    }
+                }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+                try
+                { ssl_socket->shutdown(); }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+                try
+                { tcp_socket->close(); }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+
+                while (!IncomingDocuments.empty())
+                {
+                    auto n = IncomingDocuments.front();
+                    delete n;
+                    IncomingDocuments.pop();
+                }
+
             }
 
 
