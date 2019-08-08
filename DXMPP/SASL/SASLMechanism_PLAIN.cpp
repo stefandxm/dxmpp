@@ -45,9 +45,14 @@
 
 using namespace std;
 
+
 namespace DXMPP
 {
-    namespace SASL
+#if defined(CRYPTOPP_NO_GLOBAL_BYTE)
+  using CryptoPP::byte;
+#endif
+
+namespace SASL
     {
         namespace Weak
         {
@@ -56,7 +61,7 @@ namespace DXMPP
                 std::string authid = MyJID.GetUsername();
                 std::string authzid = "";
     
-                CryptoPP::byte tempbuff[1024];
+                byte tempbuff[1024];
                 int offset= 0;
                 memcpy(tempbuff+offset, authzid.c_str(), authzid.length());
                 offset+=authzid.length();

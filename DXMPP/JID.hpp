@@ -73,12 +73,12 @@ namespace DXMPP {
             this->Resource = B.Resource;
         }
         
-        void SetResource(std::string Resource) 
+        void SetResource(std::string Resource)
         {
             this->Resource = Resource;
         }
 
-        std::string GetFullJID()
+        std::string GetFullJID() const
         {
             if (Resource.empty() && Username.empty())
                 return Domain;
@@ -89,24 +89,24 @@ namespace DXMPP {
             return Username + "@" + Domain + "/" + Resource;
         }
         
-        std::string GetBareJID()
+        std::string GetBareJID() const
         {
             if (Username.empty())
                 return Domain;
             return Username + "@" + Domain;
         }
         
-        std::string GetUsername() 
+        std::string GetUsername() const
         {
             return Username;
         }
         
-        std::string GetDomain() 
+        std::string GetDomain() const
         {
             return Domain;
         }
 
-        std::string GetResource() 
+        std::string GetResource() const
         {
             return Resource;
         }

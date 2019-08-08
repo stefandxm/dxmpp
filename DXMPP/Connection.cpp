@@ -1,4 +1,4 @@
-﻿//
+//
 //  Connection.cpp
 //  DXMPP
 //
@@ -274,6 +274,10 @@ else std::cout
 
             return;
         }
+        xml_node bind = iqnode.child("bind");
+        xml_node jid = bind.child("jid");
+        string sjid = jid.text().as_string();
+        this->MyJID = JID(sjid);
 
         DebugOut(DebugOutputTreshold::Debug)
                 << std::endl
@@ -368,23 +372,38 @@ else std::cout
     bool Connection::CheckStreamForStanza(pugi::xml_document* Doc)
     {
         xml_node message = Doc->select_node("//message").node();
+        xml_node iq= Doc->select_node("//iq").node();
 
-        if(!message)
+        if(!message && !iq)
             return false;
 
         return true;
     }
 
     void Connection::DispatchStanza(std::unique_ptr<pugi::xml_document> Doc)
-    {
+    {        
         xml_node message = Doc->select_node("//message").node();
+        xml_node iq = Doc->select_node("//iq").node();
         boost::shared_lock<boost::shared_mutex> ReadLock(StanzaHandlerMutex);
-        if(StanzaHandler)
-            StanzaHandler->StanzaReceived(
-                        SharedStanza(
-                            new Stanza( std::move(Doc),
-                                       message)),
-                        shared_from_this());
+        if(!StanzaHandler)
+            return;
+
+        SharedStanza StanzaToDispatch;
+
+        if(message)
+        {
+            StanzaToDispatch = SharedStanzaMessage(
+                            new StanzaMessage( std::move(Doc),
+                                       message));
+        }
+        if(iq)
+        {
+            StanzaToDispatch = SharedStanzaIQ(
+                            new StanzaIQ( std::move(Doc),
+                                       iq));
+        }
+
+        StanzaHandler->StanzaReceived(StanzaToDispatch ,shared_from_this());
     }
 
     void Connection::CheckForPresence(pugi::xml_document* Doc)
@@ -398,9 +417,20 @@ else std::cout
     }
 
 
-    SharedStanza Connection::CreateStanza(const JID &TargetJID)
+    SharedStanza Connection::CreateStanza(const JID &TargetJID, StanzaType Type)
     {
-        SharedStanza ReturnValue(new Stanza());
+        SharedStanza ReturnValue;
+        switch(Type)
+        {
+            case StanzaType::IQ:
+                ReturnValue = boost::make_shared<StanzaIQ>();
+                break;
+            case StanzaType::Message:
+                ReturnValue = boost::make_shared<StanzaMessage>();
+                break;
+            case StanzaType::Presence:
+                return nullptr;
+        }
         ReturnValue->To = TargetJID;
         ReturnValue->From = MyJID;
         return ReturnValue;
@@ -413,19 +443,11 @@ else std::cout
             throw std::runtime_error("Trying to send Stanza with disconnected connection.");
         }
 
-        switch(Stanza->Type)
-        {
-        case StanzaType::Chat:
-            Stanza->Message.attribute("type").set_value( "chat" );
-            break;
-        case StanzaType::Error:
-            Stanza->Message.attribute("type").set_value( "error" );
-            break;
-        }
+        Stanza->ProvisionOutgoingStanza();
 
-        Stanza->Message.attribute("from").set_value( MyJID.GetFullJID().c_str() );
-        Stanza->Message.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
-        Stanza->Message.attribute("id").set_value( Stanza->ID.c_str() );
+        Stanza->Payload.attribute("from").set_value( MyJID.GetFullJID().c_str() );
+        Stanza->Payload.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
+        Stanza->Payload.attribute("id").set_value( Stanza->ID.c_str() );
 
         Client->WriteXMLToSocket(Stanza->Document.get());
     }
@@ -530,10 +552,10 @@ else std::cout
         DebugTreshold(DebugTreshold),
         CurrentAuthenticationState(AuthenticationState::None),
         Hostname(Hostname),
-        Portnumber(Portnumber),
-        MyJID(Domain),
         Certificate(Certificate),
         Privatekey(Privatekey),
+        Portnumber(Portnumber),
+        MyJID(Domain),
         Verification(Verification),
         VerificationMode(VerificationMode),
         Authentication(nullptr)

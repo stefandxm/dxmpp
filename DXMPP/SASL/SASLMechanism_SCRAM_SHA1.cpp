@@ -80,10 +80,10 @@ namespace DXMPP
 
             string n = MyJID.GetUsername();
 
-            CryptoPP::byte SaltBytes[1024];
+            byte SaltBytes[1024];
 
             CryptoPP::Base64Decoder decoder;
-            decoder.Put((CryptoPP::byte*)s.c_str(), s.length());
+            decoder.Put((byte*)s.c_str(), s.length());
             decoder.MessageEnd();
 
             int SaltLength =decoder.Get(SaltBytes, 1024-4);
@@ -96,20 +96,20 @@ namespace DXMPP
             string p= ""; // proof!! calcualte!!
 
 
-            CryptoPP::byte Result[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte tmp[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte ClientKey[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte StoredKey[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte Previous[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte ClientSignature[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte ClientProof[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte ServerKey[ SHAVersion::DIGESTSIZE ];
-            CryptoPP::byte ServerSignature[SHAVersion::DIGESTSIZE ];
+            byte Result[ SHAVersion::DIGESTSIZE ];
+            byte tmp[ SHAVersion::DIGESTSIZE ];
+            byte ClientKey[ SHAVersion::DIGESTSIZE ];
+            byte StoredKey[ SHAVersion::DIGESTSIZE ];
+            byte Previous[ SHAVersion::DIGESTSIZE ];
+            byte ClientSignature[ SHAVersion::DIGESTSIZE ];
+            byte ClientProof[ SHAVersion::DIGESTSIZE ];
+            byte ServerKey[ SHAVersion::DIGESTSIZE ];
+            byte ServerSignature[SHAVersion::DIGESTSIZE ];
 
             int digestlength =SHAVersion::DIGESTSIZE;
 
             // Calculate Result
-            CryptoPP::HMAC< SHAVersion > hmacFromPassword((CryptoPP::byte*)Password.c_str(),
+            CryptoPP::HMAC< SHAVersion > hmacFromPassword((byte*)Password.c_str(),
                                                           Password.length());
             hmacFromPassword.CalculateDigest( Result, SaltBytes, SaltLength);
 
@@ -127,7 +127,7 @@ namespace DXMPP
             // Result is now salted password
             CryptoPP::HMAC< SHAVersion > hmacFromSaltedPassword(Result, digestlength);
             hmacFromSaltedPassword.CalculateDigest( ClientKey,
-                                                    (CryptoPP::byte*)"Client Key",
+                                                    (byte*)"Client Key",
                                                     strlen("Client Key"));
 
             SHAVersion hash;
@@ -143,7 +143,7 @@ namespace DXMPP
 
             CryptoPP::HMAC< SHAVersion > hmacFromStoredKey(StoredKey, digestlength);
             hmacFromStoredKey.CalculateDigest( ClientSignature,
-                                               (CryptoPP::byte*)AuthMessage.c_str(),
+                                               (byte*)AuthMessage.c_str(),
                                                AuthMessage.length());
 
             for(int i = 0; i < digestlength; i++)
@@ -153,12 +153,12 @@ namespace DXMPP
 
             // Prepare an HMAC SHA-1 digester using the salted password bytes as the key.
             hmacFromSaltedPassword.CalculateDigest( ServerKey,
-                                                    (CryptoPP::byte*)"Server Key",
+                                                    (byte*)"Server Key",
                                                     strlen("Server Key"));
 
             CryptoPP::HMAC< SHAVersion > hmacFromServerKey(ServerKey, digestlength);
             hmacFromServerKey.CalculateDigest( ServerSignature,
-                                               (CryptoPP::byte*)AuthMessage.c_str(),
+                                               (byte*)AuthMessage.c_str(),
                                                AuthMessage.length());
             CryptoPP::ArraySource(ServerSignature, digestlength, true,
                                         new CryptoPP::Base64Encoder(

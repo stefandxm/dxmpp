@@ -52,14 +52,40 @@ else std::cout
 			try
 			{
 				if(Certificate.size() > 0)
-					ssl_context->use_certificate(Certificate, boost::asio::ssl::context::file_format::pem);
+                {
+                    std::cout << "Applying client certificate" << std::endl;
+                    try
+                    {
+                        ssl_context->use_certificate(Certificate, boost::asio::ssl::context::file_format::pem);
+                    }
+                    catch(exception &ex)
+                    {
+                        std::cerr << "Exception applying certificate: " << ex.what() << std::endl;
+                        CurrentConnectionState = ConnectionState::Error;
+                        return;
+                    }
+                }
 				if(Privatekey.size()>0)
-					ssl_context->use_private_key(Privatekey, boost::asio::ssl::context::file_format::pem);
+                {
+                    std::cout << "Applying client key" << std::endl;
+                    try
+                    {
+                        ssl_context->use_private_key(Privatekey, boost::asio::ssl::context::file_format::pem);
+                    }
+                    catch(exception &ex)
+                    {
+                        std::cerr << "Exception applying private key: " << ex.what() << std::endl;
+                        CurrentConnectionState = ConnectionState::Error;
+                        return;
+                    }
+
+                }
 			}
 			catch(std::exception &ex)
 			{
 				std::cerr<< "Exception in AsyncTCPXMLClient::Reset: " << ex.what() << std::endl;
 				CurrentConnectionState = ConnectionState::Error;
+                return;
 			}
 
             tcp_socket.reset( new boost::asio::ip::tcp::socket(*io_service) );
@@ -513,6 +539,9 @@ else std::cout
         bool AsyncTCPXMLClient::ConnectSocket()
         {
             Reset();
+            if(CurrentConnectionState == ConnectionState::Error)
+                return false;
+
             SendKeepAliveWhitespaceTimer = nullptr;
             ReadDataBuffer = ReadDataBufferNonSSL;
             ReadDataStream = &ReadDataStreamNonSSL;

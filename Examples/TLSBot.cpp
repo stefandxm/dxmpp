@@ -33,7 +33,7 @@ public:
     void StanzaReceived(SharedStanza Stanza,
             SharedConnection Sender)
     {
-        xml_node Body = Stanza->Message.select_node("//body").node();
+        xml_node Body = Stanza->Payload.select_node("//body").node();
         if(!Body)
             return;
 
@@ -48,8 +48,8 @@ public:
              << Stanza->From.GetFullJID() << endl;
 
 
-        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);        
-        ResponseStanza->Message.append_copy(Body);
+        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From, StanzaType::Message);
+        ResponseStanza->Payload.append_copy(Body);
         Sender->SendStanza(ResponseStanza);
     }
 
@@ -85,7 +85,7 @@ public:
                            boost::asio::ssl::verify_context& /*ctx*/)
     {
         cout << "I should seriously verify this, but for now i will just reject" << endl;
-        return false;
+        return true;
     }
 
 
@@ -106,13 +106,12 @@ int main(int, const char **)
 
     boost::asio::const_buffer Certificate;
     boost::asio::const_buffer PrivateKey;
-
     std::string Hostname = "host";
     std::string Domain = "domain";
 
 
     {
-        ifstream certfile ("/Users/stefan/certs/cpptest.pem", std::ios::binary | std::ios::ate);
+        ifstream certfile ("/home/stefan/certs/cpptest.pem", std::ios::binary | std::ios::ate);
         std::streamsize certsize = certfile.tellg();
         certfile.seekg(0, std::ios::beg);
         std::vector<char> buffecertr(certsize);
@@ -126,7 +125,7 @@ int main(int, const char **)
 
 
     {
-        ifstream pkeyfile ("/Users/stefan/certs/cpptest.pem", std::ios::binary | std::ios::ate);
+        ifstream pkeyfile ("/home/stefan/certs/cpptest.pem", std::ios::binary | std::ios::ate);
         std::streamsize pkeysize = pkeyfile.tellg();
         pkeyfile.seekg(0, std::ios::beg);
         std::vector<char> bufferkey(pkeysize);

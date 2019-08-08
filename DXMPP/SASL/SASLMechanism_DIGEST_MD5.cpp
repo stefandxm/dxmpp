@@ -57,7 +57,7 @@ namespace DXMPP
             string SASL_Mechanism_DigestMD5::GetMD5Hex(string Input)
             {
                 CryptoPP::Weak::MD5 hash;
-                CryptoPP::byte digest[ CryptoPP::Weak::MD5::DIGESTSIZE ];
+                byte digest[ CryptoPP::Weak::MD5::DIGESTSIZE ];
                 int length =CryptoPP::Weak::MD5::DIGESTSIZE;
                 
                 CryptoPP::HexEncoder Hexit;
@@ -77,7 +77,7 @@ namespace DXMPP
             string SASL_Mechanism_DigestMD5::GetHA1(string X, string nonce, string cnonce)
             {
                 CryptoPP::Weak::MD5 hash;
-                CryptoPP::byte digest[ CryptoPP::Weak::MD5::DIGESTSIZE ];
+                byte digest[ CryptoPP::Weak::MD5::DIGESTSIZE ];
                 int digestlength =CryptoPP::Weak::MD5::DIGESTSIZE;
     
                 // Calculatey Y
@@ -90,7 +90,7 @@ namespace DXMPP
                 TStream << ":" << nonce << ":" << cnonce;
                 string AuthentiationDetails = TStream.str();
                 int TLen = (int)digestlength + (int)AuthentiationDetails.length();
-                CryptoPP::byte *T = new CryptoPP::byte[TLen];
+                byte *T = new byte[TLen];
                 memcpy(T, digest, digestlength);
                 memcpy(T+digestlength, AuthentiationDetails.c_str(), AuthentiationDetails.length());
                 hash.CalculateDigest( digest, reinterpret_cast<const unsigned char *>( T ), TLen );
