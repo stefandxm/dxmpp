@@ -13,10 +13,6 @@
 
 namespace DXMPP
 {
-#if defined(CRYPTOPP_NO_GLOBAL_BYTE)
-  using CryptoPP::byte;
-#endif
-
     namespace SASL
     {
         namespace Weak

@@ -43,17 +43,15 @@
 
 #include "SaslChallengeParser.hpp"
 
-using namespace std;
+#include "CryptoPP_byte.hpp"
 
 
 namespace DXMPP
 {
-#if defined(CRYPTOPP_NO_GLOBAL_BYTE)
-  using CryptoPP::byte;
-#endif
-
-namespace SASL
+    namespace SASL
     {
+        using namespace std;
+
         namespace Weak
         {
             void SASL_Mechanism_PLAIN::Begin()
@@ -61,7 +59,7 @@ namespace SASL
                 std::string authid = MyJID.GetUsername();
                 std::string authzid = "";
     
-                byte tempbuff[1024];
+                CryptoPP::byte tempbuff[1024];
                 int offset= 0;
                 memcpy(tempbuff+offset, authzid.c_str(), authzid.length());
                 offset+=authzid.length();
