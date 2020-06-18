@@ -43,7 +43,6 @@
 
 #include "SaslChallengeParser.hpp"
 
-using namespace std;
 
 
 namespace DXMPP
@@ -52,8 +51,10 @@ namespace DXMPP
   using CryptoPP::byte;
 #endif
 
-namespace SASL
+    namespace SASL
     {
+        using namespace std;
+
         namespace Weak
         {
             void SASL_Mechanism_PLAIN::Begin()
