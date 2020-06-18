@@ -16,11 +16,6 @@
 
 namespace DXMPP
 {
-
-#if defined(CRYPTOPP_NO_GLOBAL_BYTE)
-  using CryptoPP::byte;
-#endif
-
     namespace SASL
     {
         typedef CryptoPP::SHA1 SHAVersion; // CryptoPP::SHA256
