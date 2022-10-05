@@ -20,7 +20,7 @@ namespace DXMPP
         public:
             void Begin();
 
-            SASL_Mechanism_EXTERNAL(boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink)
+            SASL_Mechanism_EXTERNAL(std::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Uplink)
                 :SASLMechanism(Uplink, JID(""), std::string(""))
             {
             }

@@ -13,10 +13,10 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/any.hpp>
 
 #include <sstream>
+#include <memory>
 
 #include <pugixml/pugixml.hpp>
 #include <DXMPP/JID.hpp>
@@ -30,16 +30,13 @@
 #include <DXMPP/IEventHandler.hpp>
 #include <atomic>
 
-
-
 namespace DXMPP
 {
-    typedef boost::shared_ptr<pugi::xml_node> SharedXMLNode;
+    typedef std::shared_ptr<pugi::xml_node> SharedXMLNode;
 
-    class Connection
-            :
-            public boost::enable_shared_from_this<Connection>
+    class Connection : public std::enable_shared_from_this<Connection>
     {
+    public:
         enum class ConnectionState
         {
             NotConnected = 0,
@@ -66,9 +63,9 @@ namespace DXMPP
             Authenticated
         };
 
-        boost::shared_ptr<boost::asio::io_service> io_service;
-        boost::scoped_ptr<boost::thread> IOThread;
-        boost::scoped_ptr<TLSVerification> SelfHostedVerifier;
+        std::shared_ptr<boost::asio::io_service> io_service;
+        std::unique_ptr<boost::thread> IOThread;
+        std::unique_ptr<TLSVerification> SelfHostedVerifier;
         ConnectionCallback * ConnectionHandler;
         boost::shared_mutex ConnectionHandlerMutex;
         StanzaCallback * StanzaHandler;
@@ -76,7 +73,7 @@ namespace DXMPP
         ConnectionCallback::ConnectionState PreviouslyBroadcastedState;
 
 
-        boost::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
+        std::shared_ptr<DXMPP::Network::AsyncTCPXMLClient> Client;
 
         DebugOutputTreshold DebugTreshold;
 
@@ -102,7 +99,7 @@ namespace DXMPP
 
         TLSVerification *Verification;
         TLSVerificationMode VerificationMode;
-        boost::scoped_ptr<SASL::SASLMechanism> Authentication;
+        std::unique_ptr<SASL::SASLMechanism> Authentication;
 
         void Reset();
         void InitTLS();

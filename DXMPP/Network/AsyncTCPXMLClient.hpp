@@ -32,7 +32,7 @@
 #include <memory>
 #include <sstream>
 #include <queue>
-
+#include <iostream>
 
 #include <pugixml/pugixml.hpp>
 #include <DXMPP/Debug/DebugOutputTreshold.hpp>
@@ -57,8 +57,8 @@ namespace DXMPP
             char ReadDataBufferSSL[ReadDataBufferSize];
             std::stringstream ReadDataStreamSSL;
 
-            boost::asio::mutable_buffers_1 SSLBuffer;
-            boost::asio::mutable_buffers_1 NonSSLBuffer;
+            boost::asio::mutable_buffer SSLBuffer;
+            boost::asio::mutable_buffer NonSSLBuffer;
             void SendKeepAliveWhitespace();
             std::unique_ptr<boost::asio::deadline_timer>  SendKeepAliveWhitespaceTimer;
             std::string SendKeepAliveWhiteSpaceDataToSend;
@@ -101,10 +101,10 @@ namespace DXMPP
             bool SSLConnection;
             volatile ConnectionState CurrentConnectionState;
 
-            boost::shared_ptr<boost::asio::io_service> io_service;
-            boost::scoped_ptr<boost::asio::ssl::context> ssl_context;
-            boost::scoped_ptr<boost::asio::ip::tcp::socket> tcp_socket;
-            boost::scoped_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> ssl_socket;
+            std::shared_ptr<boost::asio::io_service> io_service;
+            std::unique_ptr<boost::asio::ssl::context> ssl_context;
+            std::unique_ptr<boost::asio::ip::tcp::socket> tcp_socket;
+            std::unique_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>> ssl_socket;
 
 
             void HandleWrite(boost::asio::ip::tcp::socket *active_socket,
@@ -145,7 +145,39 @@ namespace DXMPP
 
             ~AsyncTCPXMLClient()
             {
-                //std::cout << "~AsyncTCPXMLClient" << std::endl;
+                std::cout << "~AsyncTCPXMLClient" << std::endl;
+                try
+                {
+                    if( SendKeepAliveWhitespaceTimer != nullptr )
+                        SendKeepAliveWhitespaceTimer->cancel();
+                }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+                try
+                {
+                    io_service->stop();
+                    while (!io_service->stopped())
+                    {
+                    }
+                }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+                try
+                { ssl_socket->shutdown(); }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+                try
+                { tcp_socket->close(); }
+                catch( std::exception & ex )
+                { std::cout << "Exception: " << ex.what() << std::endl; }
+
+                while (!IncomingDocuments.empty())
+                {
+                    auto n = IncomingDocuments.front();
+                    delete n;
+                    IncomingDocuments.pop();
+                }
+
             }
 
 
@@ -156,7 +188,7 @@ namespace DXMPP
             GotDataCallbackFunction GotDataCallback;
 
             AsyncTCPXMLClient(
-                               boost::shared_ptr<boost::asio::io_service> IOService,
+                               std::shared_ptr<boost::asio::io_service> IOService,
                                boost::asio::const_buffer Certificate,
                                boost::asio::const_buffer Privatekey,
                                TLSVerification *TLSConfig,

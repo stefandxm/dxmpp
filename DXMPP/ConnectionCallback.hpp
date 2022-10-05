@@ -19,7 +19,7 @@
 namespace DXMPP
 {
     class Connection;
-    typedef boost::shared_ptr<Connection> SharedConnection;
+    typedef std::shared_ptr<Connection> SharedConnection;
     
     class ConnectionCallback
     {
