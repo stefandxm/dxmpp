@@ -38,13 +38,15 @@
 
 #include "SaslChallengeParser.hpp"
 
-using namespace std;
-using namespace pugi;
+#include "CryptoPP_byte.hpp"
 
 namespace DXMPP
 {
     namespace SASL
     {
+        using namespace std;
+        using namespace pugi;
+
         namespace Weak
         {
             void SASL_Mechanism_DigestMD5::Begin()

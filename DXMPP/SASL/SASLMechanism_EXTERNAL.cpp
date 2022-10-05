@@ -43,12 +43,12 @@
 
 #include "SaslChallengeParser.hpp"
 
-using namespace std;
-
 namespace DXMPP
 {
     namespace SASL
     {
+        using namespace std;
+
         void SASL_Mechanism_EXTERNAL::Begin()
         {
 

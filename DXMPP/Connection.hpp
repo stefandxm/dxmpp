@@ -172,7 +172,14 @@ namespace DXMPP
         void Reconnect();
         RosterMaintaner *Roster;
 
-        SharedStanza CreateStanza(const JID &Target);
+        SharedStanza CreateStanza(const JID &TargetJID, StanzaType Type);
+
+        template <typename T>
+        T CreateStanza(const JID &TargetJID, StanzaType Type)
+        {
+            return boost::dynamic_pointer_cast<typename T::element_type> ( CreateStanza(TargetJID, Type) );
+        }
+
         void SendStanza(SharedStanza Stanza);
 
         static SharedConnection Create(const std::string &Hostname,

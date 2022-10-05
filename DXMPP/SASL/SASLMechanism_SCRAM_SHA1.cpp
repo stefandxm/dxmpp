@@ -42,12 +42,14 @@
 
 #include "SaslChallengeParser.hpp"
 
-using namespace std;
+#include "CryptoPP_byte.hpp"
 
 namespace DXMPP
 {
     namespace SASL
     {
+        using namespace std;
+
         void SASL_Mechanism_SCRAM_SHA1::Begin()
         {
             stringstream TStream;

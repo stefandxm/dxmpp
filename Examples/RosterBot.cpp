@@ -34,7 +34,7 @@ public:
     void StanzaReceived(SharedStanza Stanza,
             SharedConnection Sender)
     {
-        xml_node Body = Stanza->Message.select_node("//body").node();
+        xml_node Body = Stanza->Payload.select_node("//body").node();
         if(!Body)
             return;
 
@@ -49,8 +49,8 @@ public:
              << Stanza->From.GetFullJID() << endl;
 
 
-        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From);
-        ResponseStanza->Message.append_copy(Body);
+        SharedStanza ResponseStanza = Sender->CreateStanza(Stanza->From, StanzaType::Message);
+        ResponseStanza->Payload.append_copy(Body);
         Sender->SendStanza(ResponseStanza);
     }
 

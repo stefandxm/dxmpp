@@ -1,4 +1,4 @@
-﻿//
+//
 //  Connection.cpp
 //  DXMPP
 //
@@ -275,6 +275,10 @@ void Connection::CheckForBindSuccess(pugi::xml_document* Doc)
 
         return;
     }
+        xml_node bind = iqnode.child("bind");
+        xml_node jid = bind.child("jid");
+        string sjid = jid.text().as_string();
+        this->MyJID = JID(sjid);
 
     DebugOut(DebugOutputTreshold::Debug)
             << std::endl
@@ -369,20 +373,39 @@ void Connection::CheckStreamForAuthenticationData(pugi::xml_document* Doc)
 bool Connection::CheckStreamForStanza(pugi::xml_document* Doc)
 {
     xml_node message = Doc->select_node("//message").node();
+        xml_node iq= Doc->select_node("//iq").node();
 
-    if(!message)
+    if(!message && !iq)
         return false;
 
     return true;
 }
 
-void Connection::DispatchStanza(std::unique_ptr<pugi::xml_document> Doc)
-{
-    xml_node message = Doc->select_node("//message").node();
-    boost::shared_lock<boost::shared_mutex> ReadLock(StanzaHandlerMutex);
-    if(StanzaHandler)
-        StanzaHandler->StanzaReceived(std::make_shared<Stanza>(std::move(Doc), message), shared_from_this());
-}
+    void Connection::DispatchStanza(std::unique_ptr<pugi::xml_document> Doc)
+    {        
+        xml_node message = Doc->select_node("//message").node();
+        xml_node iq = Doc->select_node("//iq").node();
+        boost::shared_lock<boost::shared_mutex> ReadLock(StanzaHandlerMutex);
+        if(!StanzaHandler)
+            return;
+
+        SharedStanza StanzaToDispatch;
+
+        if(message)
+        {
+            StanzaToDispatch = SharedStanzaMessage(
+                            new StanzaMessage( std::move(Doc),
+                                       message));
+        }
+        if(iq)
+        {
+            StanzaToDispatch = SharedStanzaIQ(
+                            new StanzaIQ( std::move(Doc),
+                                       iq));
+        }
+
+        StanzaHandler->StanzaReceived(StanzaToDispatch ,shared_from_this());
+    }
 
 void Connection::CheckForPresence(pugi::xml_document* Doc)
 {
@@ -395,13 +418,24 @@ void Connection::CheckForPresence(pugi::xml_document* Doc)
 }
 
 
-SharedStanza Connection::CreateStanza(const JID &TargetJID)
-{
-    SharedStanza ReturnValue = std::make_shared<Stanza>();
-    ReturnValue->To = TargetJID;
-    ReturnValue->From = MyJID;
-    return ReturnValue;
-}
+    SharedStanza Connection::CreateStanza(const JID &TargetJID, StanzaType Type)
+    {
+        SharedStanza ReturnValue;
+        switch(Type)
+        {
+            case StanzaType::IQ:
+                ReturnValue = boost::make_shared<StanzaIQ>();
+                break;
+            case StanzaType::Message:
+                ReturnValue = boost::make_shared<StanzaMessage>();
+                break;
+            case StanzaType::Presence:
+                return nullptr;
+        }
+        ReturnValue->To = TargetJID;
+        ReturnValue->From = MyJID;
+        return ReturnValue;
+    }
 
 void Connection::SendStanza(SharedStanza Stanza)
 {
@@ -410,19 +444,11 @@ void Connection::SendStanza(SharedStanza Stanza)
         throw std::runtime_error("Trying to send Stanza with disconnected connection.");
     }
 
-    switch(Stanza->Type)
-    {
-    case StanzaType::Chat:
-        Stanza->Message.attribute("type").set_value( "chat" );
-        break;
-    case StanzaType::Error:
-        Stanza->Message.attribute("type").set_value( "error" );
-        break;
-    }
+        Stanza->ProvisionOutgoingStanza();
 
-    Stanza->Message.attribute("from").set_value( MyJID.GetFullJID().c_str() );
-    Stanza->Message.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
-    Stanza->Message.attribute("id").set_value( Stanza->ID.c_str() );
+    Stanza->Payload.attribute("from").set_value( MyJID.GetFullJID().c_str() );
+    Stanza->Payload.attribute("to").set_value( Stanza->To.GetFullJID().c_str() );
+    Stanza->Payload.attribute("id").set_value( Stanza->ID.c_str() );
 
     Client->WriteXMLToSocket(Stanza->Document.get());
 }
@@ -505,42 +531,42 @@ void Connection::Reconnect()
     Connect();
 }
 
-Connection::Connection(const std::string &Hostname,
-                       int Portnumber,
-                       const std::string &Domain,
-                       boost::asio::const_buffer Certificate,
-                       boost::asio::const_buffer Privatekey,
-                       ConnectionCallback *ConnectionHandler,
-                       StanzaCallback *StanzaHandler,
-                       PresenceCallback *PresenceHandler,
-                       SubscribeCallback *SubscribeHandler,
-                       SubscribedCallback *SubscribedHandler,
-                       UnsubscribedCallback *UnsubscribedHandler,
-                       TLSVerification *Verification,
-                       TLSVerificationMode VerificationMode,
-                       DebugOutputTreshold DebugTreshold)
-    :
-      Disposing(false),
-      SelfHostedVerifier(std::make_unique<TLSVerification>(VerificationMode)),
-      ConnectionHandler(ConnectionHandler),
-      StanzaHandler(StanzaHandler),
-      DebugTreshold(DebugTreshold),
-      CurrentAuthenticationState(AuthenticationState::None),
-      Hostname(Hostname),
-      Portnumber(Portnumber),
-      MyJID(Domain),
-      Certificate(Certificate),
-      Privatekey(Privatekey),
-      Verification(Verification),
-      VerificationMode(VerificationMode),
-      Authentication(nullptr)
-{
-    Roster = new RosterMaintaner (nullptr,
-                                  PresenceHandler,
-                                  SubscribeHandler,
-                                  SubscribedHandler,
-                                  UnsubscribedHandler);
-}
+     Connection::Connection(const std::string &Hostname,
+            int Portnumber,
+            const std::string &Domain,
+            boost::asio::const_buffer Certificate,
+            boost::asio::const_buffer Privatekey,
+            ConnectionCallback *ConnectionHandler,
+            StanzaCallback *StanzaHandler,
+            PresenceCallback *PresenceHandler,
+            SubscribeCallback *SubscribeHandler,
+            SubscribedCallback *SubscribedHandler,
+            UnsubscribedCallback *UnsubscribedHandler,
+            TLSVerification *Verification,
+            TLSVerificationMode VerificationMode,
+            DebugOutputTreshold DebugTreshold)
+        :
+        Disposing(false),
+        SelfHostedVerifier(new TLSVerification(VerificationMode)),
+        ConnectionHandler(ConnectionHandler),
+        StanzaHandler(StanzaHandler),
+        DebugTreshold(DebugTreshold),
+        CurrentAuthenticationState(AuthenticationState::None),
+        Hostname(Hostname),
+        Certificate(Certificate),
+        Privatekey(Privatekey),
+        Portnumber(Portnumber),
+        MyJID(Domain),
+        Verification(Verification),
+        VerificationMode(VerificationMode),
+        Authentication(nullptr)
+    {
+        Roster = new RosterMaintaner (nullptr,
+               PresenceHandler,
+               SubscribeHandler,
+               SubscribedHandler,
+               UnsubscribedHandler);
+    }
 
 
 Connection::Connection(const std::string &Hostname,
