@@ -424,10 +424,10 @@ void Connection::CheckForPresence(pugi::xml_document* Doc)
         switch(Type)
         {
             case StanzaType::IQ:
-                ReturnValue = boost::make_shared<StanzaIQ>();
+                ReturnValue = std::make_shared<StanzaIQ>();
                 break;
             case StanzaType::Message:
-                ReturnValue = boost::make_shared<StanzaMessage>();
+                ReturnValue = std::make_shared<StanzaMessage>();
                 break;
             case StanzaType::Presence:
                 return nullptr;

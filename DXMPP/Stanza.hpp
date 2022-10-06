@@ -11,7 +11,6 @@
 
 #include "pugixml/pugixml.hpp"
 #include "JID.hpp"
-#include <boost/shared_ptr.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -214,9 +213,9 @@ namespace DXMPP {
     };
 
 
-    typedef boost::shared_ptr<Stanza> SharedStanza;
-    typedef boost::shared_ptr<StanzaMessage> SharedStanzaMessage;
-    typedef boost::shared_ptr<StanzaIQ> SharedStanzaIQ;
+    typedef std::shared_ptr<Stanza> SharedStanza;
+    typedef std::shared_ptr<StanzaMessage> SharedStanzaMessage;
+    typedef std::shared_ptr<StanzaIQ> SharedStanzaIQ;
 
 }
 

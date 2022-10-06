@@ -12,7 +12,6 @@
 #include "pugixml/pugixml.hpp"
 #include "JID.hpp"
 #include <string>
-#include <boost/shared_ptr.hpp>
 #include "Stanza.hpp"
 #include <memory>
 
